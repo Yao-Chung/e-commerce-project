@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+/* Base styles */
+* {
+  border-color: hsl(214.3 31.8% 91.4%);
+}
+
+body {
+  background-color: hsl(0 0% 100%);
+  color: hsl(222.2 84% 4.9%);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  * {
+    border-color: hsl(217.2 32.6% 17.5%);
+  }
+
+  body {
+    background-color: hsl(222.2 84% 4.9%);
+    color: hsl(210 40% 98%);
+  }
+}

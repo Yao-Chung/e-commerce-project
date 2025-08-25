@@ -215,7 +215,7 @@ The application will be available at:
 
 ## 📁 Project Structure
 
-```
+```text
 e-commerce-project/
 ├── apps/
 │   ├── frontend/                    # React frontend application
@@ -546,7 +546,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### 🏠 Landing & Discovery Flow
 
-```
+```text
 Guest User Lands on Site
 ↓
 Browse Products (No Auth Required)
@@ -566,7 +566,7 @@ Browse Products (No Auth Required)
 
 ### 🔐 Authentication Flow
 
-```
+```text
 User Wants to Purchase
 ↓
 Click "Login/Sign Up"
@@ -599,7 +599,7 @@ Redirect to Originally Intended Page
 
 ### 🛍️ Shopping Flow (Authenticated User)
 
-```
+```text
 Authenticated User
 ↓
 Browse Products
@@ -624,7 +624,7 @@ View Cart
 
 ### 💳 Checkout & Payment Flow
 
-```
+```text
 User Clicks "Checkout"
 ↓
 Review Order Summary
@@ -664,7 +664,7 @@ Process Payment (Stripe)
 
 ### ✅ Post-Purchase Flow
 
-```
+```text
 Payment Successful
 ↓
 Order Confirmation Page
@@ -689,7 +689,7 @@ Option to Continue Shopping
 
 #### **First-Time User Journey**
 
-```
+```text
 1. Lands on Homepage
 2. Sees Featured Products
 3. Clicks on Product
@@ -712,7 +712,7 @@ Option to Continue Shopping
 
 #### **Returning User Journey**
 
-```
+```text
 1. Lands on Homepage (Already Logged In)
 2. Browses Products
 3. Adds Multiple Items to Cart
@@ -727,7 +727,7 @@ Option to Continue Shopping
 
 ### 🎛️ Admin Workflow
 
-```
+```text
 Admin Login
 ↓
 Admin Dashboard
