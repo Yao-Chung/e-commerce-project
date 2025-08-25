@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "preview": "vite preview",
     "check-ts": "tsc -p tsconfig.app.json --noEmit",
     "storybook": "storybook dev -p 6006",
