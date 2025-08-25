@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* Base styles */
 * {
@@ -8,7 +8,10 @@
 body {
   background-color: hsl(0 0% 100%);
   color: hsl(222.2 84% 4.9%);
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
 }
 
 /* Dark mode */
