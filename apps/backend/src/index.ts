@@ -47,7 +47,7 @@ app.get('/api', (_, res): void => {
 })
 
 // 404 handler
-app.use('*', (req, res): void => {
+app.use((req, res): void => {
   res.status(404).json({
     error: 'Route not found',
     path: req.originalUrl,

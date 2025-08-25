@@ -4,8 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "pnpm --filter frontend dev",
-    "dev:all": "pnpm run dev:backend & pnpm run dev:frontend",
+    "dev": "pnpm run dev:backend & pnpm run dev:frontend",
     "dev:frontend": "pnpm --filter frontend dev",
     "dev:backend": "pnpm --filter backend dev",
     "build": "pnpm run build:frontend && pnpm run build:backend",
