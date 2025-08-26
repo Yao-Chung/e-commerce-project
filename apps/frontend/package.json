@@ -12,7 +12,7 @@
     "format:check": "prettier --check .",
     "preview": "vite preview",
     "check-ts": "tsc -p tsconfig.app.json --noEmit",
-    "storybook": "storybook dev -p 6006",
+    "storybook": "storybook dev -p 8001",
     "build-storybook": "storybook build"
   },
   "dependencies": {
