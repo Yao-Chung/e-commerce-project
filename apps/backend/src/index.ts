@@ -2,6 +2,8 @@ import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import dotenv from 'dotenv'
+import passport from './config/passport.config'
+import authRoutes from './routes/auth.routes.js'
 
 // Load environment variables
 dotenv.config()
@@ -20,6 +22,9 @@ app.use(
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
+// Initialize Passport
+app.use(passport.initialize())
+
 // Health check route
 app.get('/health', (_, res): void => {
   res.json({
@@ -28,6 +33,9 @@ app.get('/health', (_, res): void => {
     timestamp: new Date().toISOString(),
   })
 })
+
+// Mount auth routes
+app.use('/api/auth', authRoutes)
 
 // API routes
 app.get('/api', (_, res): void => {
