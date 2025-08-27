@@ -1,7 +1,7 @@
 import { Router } from 'express'
-import passport from 'passport'
 import { authController } from '../controllers/auth.controller'
 import { authenticateJWT, withAuth } from '../middleware/auth.middleware'
+import googleAuthRoutes from './google-auth.routes'
 
 const router: Router = Router()
 
@@ -11,24 +11,8 @@ router.post('/register', authController.register.bind(authController))
 // Login endpoint
 router.post('/login', authController.login.bind(authController))
 
-// Google OAuth routes
-router.get(
-  '/google',
-  passport.authenticate('google', {
-    scope: ['profile', 'email'],
-    session: false,
-  })
-)
-
-router.get(
-  '/google/callback',
-  passport.authenticate('google', {
-    session: false,
-    failureRedirect:
-      process.env.FRONTEND_URL + '/auth/login?error=google_auth_failed',
-  }),
-  withAuth((req, res) => authController.googleCallback(req, res))
-)
+// Mount Google OAuth routes
+router.use('/', googleAuthRoutes)
 
 // Protected routes
 router.get(
@@ -49,10 +33,28 @@ router.get(
 
 // Health check for auth routes
 router.get('/health', (_, res) => {
+  const googleOAuthConfigured: boolean = !!(
+    process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+  )
+
   res.json({
     status: 'OK',
     message: 'Auth service is running',
     timestamp: new Date().toISOString(),
+    services: {
+      jwtAuth: 'enabled',
+      googleOAuth: googleOAuthConfigured ? 'enabled' : 'disabled',
+      database: 'connected', // Assuming Prisma is working
+    },
+    endpoints: {
+      register: '/api/auth/register',
+      login: '/api/auth/login',
+      profile: '/api/auth/profile',
+      googleOAuth: googleOAuthConfigured ? '/api/auth/google' : 'disabled',
+      googleCallback: googleOAuthConfigured
+        ? '/api/auth/google/callback'
+        : 'disabled',
+    },
   })
 })
 

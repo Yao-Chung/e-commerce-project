@@ -42,99 +42,128 @@ passport.use(
   )
 )
 
-// Google OAuth Strategy - Create instance with proper typing
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const googleStrategy = new (GoogleStrategy as any)(
-  {
-    clientID: process.env.GOOGLE_CLIENT_ID || '',
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-    callbackURL: process.env.GOOGLE_CALLBACK_URL || '/api/auth/google/callback',
-    passReqToCallback: false,
-  },
-  async (
-    _accessToken: string,
-    _refreshToken: string,
-    profile: GoogleProfile,
-    done: VerifyCallback
-  ) => {
-    try {
-      // Check if user already exists with this Google ID
-      let user = await prisma.user.findUnique({
-        where: { googleId: profile.id },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-          createdAt: true,
-          updatedAt: true,
-          googleId: true,
-        },
-      })
+// Google OAuth Strategy - Only initialize if credentials are provided
+const googleClientId: string | undefined = process.env.GOOGLE_CLIENT_ID
+const googleClientSecret: string | undefined = process.env.GOOGLE_CLIENT_SECRET
+const googleCallbackUrl: string =
+  process.env.GOOGLE_CALLBACK_URL || '/api/auth/google/callback'
 
-      if (user) {
-        return done(null, user)
+if (googleClientId && googleClientSecret) {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const googleStrategy = new (GoogleStrategy as any)(
+      {
+        clientID: googleClientId,
+        clientSecret: googleClientSecret,
+        callbackURL: googleCallbackUrl,
+        passReqToCallback: false,
+      },
+      async (
+        _accessToken: string,
+        _refreshToken: string,
+        profile: GoogleProfile,
+        done: VerifyCallback
+      ) => {
+        try {
+          console.log(
+            `🔐 Google OAuth callback triggered for user: ${profile.displayName} (${profile.emails[0]?.value})`
+          )
+
+          // Check if user already exists with this Google ID
+          let user = await prisma.user.findUnique({
+            where: { googleId: profile.id },
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              role: true,
+              createdAt: true,
+              updatedAt: true,
+              googleId: true,
+            },
+          })
+
+          if (user) {
+            console.log(`✅ Existing Google user found: ${user.email}`)
+            return done(null, user)
+          }
+
+          // Check if user exists with same email
+          const email: string = profile.emails[0]?.value || ''
+          user = await prisma.user.findUnique({
+            where: { email },
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              role: true,
+              createdAt: true,
+              updatedAt: true,
+              googleId: true,
+            },
+          })
+
+          if (user) {
+            // Link Google account to existing user
+            console.log(`🔗 Linking Google account to existing user: ${email}`)
+            const updatedUser = await prisma.user.update({
+              where: { id: user.id },
+              data: { googleId: profile.id },
+              select: {
+                id: true,
+                email: true,
+                name: true,
+                role: true,
+                createdAt: true,
+                updatedAt: true,
+                googleId: true,
+              },
+            })
+            return done(null, updatedUser)
+          }
+
+          // Create new user
+          console.log(`👤 Creating new user from Google OAuth: ${email}`)
+          const newUser = await prisma.user.create({
+            data: {
+              googleId: profile.id,
+              email,
+              name: profile.displayName,
+              password: null, // No password for OAuth users
+            },
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              role: true,
+              createdAt: true,
+              updatedAt: true,
+              googleId: true,
+            },
+          })
+
+          console.log(
+            `✅ New Google user created successfully: ${newUser.email}`
+          )
+          return done(null, newUser)
+        } catch (error) {
+          console.error('❌ Google OAuth strategy error:', error)
+          return done(error, false)
+        }
       }
+    )
 
-      // Check if user exists with same email
-      const email: string = profile.emails[0]?.value || ''
-      user = await prisma.user.findUnique({
-        where: { email },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-          createdAt: true,
-          updatedAt: true,
-          googleId: true,
-        },
-      })
-
-      if (user) {
-        // Link Google account to existing user
-        const updatedUser = await prisma.user.update({
-          where: { id: user.id },
-          data: { googleId: profile.id },
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            role: true,
-            createdAt: true,
-            updatedAt: true,
-            googleId: true,
-          },
-        })
-        return done(null, updatedUser)
-      }
-
-      // Create new user
-      const newUser = await prisma.user.create({
-        data: {
-          googleId: profile.id,
-          email,
-          name: profile.displayName,
-          password: null, // No password for OAuth users
-        },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-          createdAt: true,
-          updatedAt: true,
-          googleId: true,
-        },
-      })
-
-      return done(null, newUser)
-    } catch (error) {
-      return done(error, false)
-    }
+    passport.use('google', googleStrategy)
+    console.log('✅ Google OAuth strategy initialized successfully')
+    console.log(`   Client ID: ${googleClientId.substring(0, 20)}...`)
+    console.log(`   Callback URL: ${googleCallbackUrl}`)
+  } catch (error) {
+    console.error('❌ Failed to initialize Google OAuth strategy:', error)
   }
-)
-
-passport.use('google', googleStrategy)
+} else {
+  console.log(
+    '⚠️  Google OAuth not configured - GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables are required'
+  )
+}
 
 export default passport
