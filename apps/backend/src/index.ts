@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
 import passport from './config/passport.config'
 import authRoutes from './routes/auth.routes'
+import productRoutes from './routes/product.routes'
 
 // Load environment variables
 dotenv.config()
@@ -36,8 +37,9 @@ app.get('/health', (_, res): void => {
   })
 })
 
-// Mount auth routes
+// Mount routes
 app.use('/api/auth', authRoutes)
+app.use('/api/products', productRoutes)
 
 // API routes
 app.get('/api', (_, res): void => {
