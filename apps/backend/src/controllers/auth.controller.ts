@@ -59,6 +59,14 @@ export class AuthController {
       // Create session
       await authService.createSession(user.id, { loginType: 'email' })
 
+      // Set HTTP-only cookie for security
+      res.cookie('authToken', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      })
+
       const response: AuthResponse = {
         user,
         token,
@@ -128,6 +136,14 @@ export class AuthController {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
       const { password: _, ...userWithoutPassword } = user
 
+      // Set HTTP-only cookie for security
+      res.cookie('authToken', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      })
+
       const response: AuthResponse = {
         user: userWithoutPassword,
         token,
@@ -189,10 +205,18 @@ export class AuthController {
       // Create session
       await authService.createSession(user.id, { loginType: 'google' })
 
-      // Redirect to frontend with token
+      // Set HTTP-only cookie for security
+      res.cookie('authToken', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      })
+
+      // Redirect to frontend without token in URL
       const frontendUrl: string =
         process.env.FRONTEND_URL || 'http://localhost:5173'
-      const redirectUrl: string = `${frontendUrl}/auth/callback?token=${token}&user=${encodeURIComponent(JSON.stringify(user))}`
+      const redirectUrl: string = `${frontendUrl}/auth/callback?success=true&user=${encodeURIComponent(JSON.stringify(user))}`
 
       res.redirect(redirectUrl)
     } catch (error) {
@@ -208,6 +232,13 @@ export class AuthController {
     try {
       // Clean expired sessions
       await authService.cleanExpiredSessions()
+
+      // Clear the auth cookie
+      res.clearCookie('authToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+      })
 
       res.json({
         message: 'Logout successful',

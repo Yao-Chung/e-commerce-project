@@ -9,11 +9,22 @@ import { JWTPayload, GoogleProfile } from '../types/auth.types.js'
 
 const prisma: PrismaClient = new PrismaClient()
 
-// JWT Strategy
+// JWT Strategy with support for both Authorization header and cookies
 passport.use(
   new JwtStrategy(
     {
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        ExtractJwt.fromAuthHeaderAsBearerToken(),
+        ExtractJwt.fromExtractors([
+          (req): string | null => {
+            let token: string | null = null
+            if (req && req.cookies) {
+              token = req.cookies['authToken']
+            }
+            return token
+          },
+        ]),
+      ]),
       secretOrKey: process.env.JWT_SECRET || 'your-secret-key',
     },
     async (payload: JWTPayload, done) => {
