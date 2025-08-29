@@ -403,8 +403,7 @@ paths:
     post:
       tags:
         - Products
-        - Admin
-      summary: Create a new product
+      summary: Create a new product (Admin only)
       description: Create a new product (Admin only)
       requestBody:
         required: true
@@ -482,8 +481,7 @@ paths:
     put:
       tags:
         - Products
-        - Admin
-      summary: Update product
+      summary: Update product (Admin only)
       description: Update an existing product (Admin only)
       parameters:
         - name: id
@@ -527,8 +525,7 @@ paths:
     delete:
       tags:
         - Products
-        - Admin
-      summary: Delete product
+      summary: Delete product (Admin only)
       description: Delete a product (Admin only)
       parameters:
         - name: id
@@ -631,8 +628,7 @@ paths:
     patch:
       tags:
         - Products
-        - Admin
-      summary: Update product stock
+      summary: Update product stock (Admin only)
       description: Set the absolute stock quantity of a product (Admin only)
       parameters:
         - name: id
@@ -779,10 +775,20 @@ paths:
     post:
       tags:
         - Products
-        - Admin
         - Upload
-      summary: Create product with image
-      description: Create a new product with image upload (Admin only)
+      summary: Create product with image (Admin only)
+      description: |
+        Create a new product with image upload in a single request (Admin only).
+
+        **Use this endpoint for:**
+        - Simple admin forms without image preview
+        - Mobile admin applications
+        - Bulk product imports
+        - Third-party integrations
+
+        **For advanced UX with image previews, use the two-step approach:**
+        1. POST /api/upload/single (get image URL)
+        2. POST /api/products (create product with imageUrl)
       requestBody:
         required: true
         content:
@@ -841,13 +847,24 @@ paths:
     put:
       tags:
         - Products
-        - Admin
         - Upload
-      summary: Update product with image
-      description: Update an existing product with optional image upload (Admin only)
+      summary: Update product with image (Admin only)
+      description: |
+        Update an existing product with optional image upload in a single request (Admin only).
+
+        **Use this endpoint for:**
+        - Simple admin forms without image preview
+        - Mobile admin applications  
+        - Quick product updates
+        - Third-party integrations
+
+        **For advanced UX with image previews, use the two-step approach:**
+        1. POST /api/upload/single (get new image URL)
+        2. PUT /api/products/{id} (update product with new imageUrl)
       parameters:
         - name: id
           in: path
+          required: true
           schema:
             type: string
             format: uuid
@@ -1249,5 +1266,3 @@ tags:
     description: Product catalog management
   - name: Upload
     description: Image upload and management
-  - name: Admin
-    description: Admin-only operations
