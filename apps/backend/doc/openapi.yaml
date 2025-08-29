@@ -1,0 +1,1046 @@
+openapi: 3.0.3
+info:
+  title: E-commerce API
+  description: |
+    A comprehensive e-commerce API built with Express.js, TypeScript, and Prisma.
+    This API provides authentication, product management, and other e-commerce functionalities.
+
+    ## Features
+    - JWT-based authentication
+    - Google OAuth integration
+    - Product catalog management
+    - Admin role-based access control
+    - Comprehensive error handling
+
+    ## Authentication
+    Most endpoints require authentication via JWT token in the Authorization header:
+    ```
+    Authorization: Bearer <jwt_token>
+    ```
+  version: 1.0.0
+  contact:
+    name: E-commerce API Support
+    email: support@example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3000
+    description: Development server
+  - url: https://api.yourdomain.com
+    description: Production server
+
+security:
+  - BearerAuth: []
+
+paths:
+  # Health & Info Endpoints
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check
+      description: Check if the API is running and healthy
+      security: []
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: 'OK'
+                  message:
+                    type: string
+                    example: 'E-commerce API is running'
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /api:
+    get:
+      tags:
+        - Info
+      summary: API information
+      description: Get API version and available endpoints
+      security: []
+      responses:
+        '200':
+          description: API information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'E-commerce API v1.0.0'
+                  endpoints:
+                    type: object
+                    properties:
+                      health:
+                        type: string
+                        example: '/health'
+                      auth:
+                        type: string
+                        example: '/api/auth'
+                      products:
+                        type: string
+                        example: '/api/products'
+
+  # Authentication Endpoints
+  /api/auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      description: Create a new user account
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'User created successfully'
+                  data:
+                    $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticate user and return JWT token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Login successful'
+                  data:
+                    $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/profile:
+    get:
+      tags:
+        - Authentication
+      summary: Get user profile
+      description: Get the current authenticated user's profile
+      responses:
+        '200':
+          description: User profile retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Profile retrieved successfully'
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: User logout
+      description: Logout the current user (invalidate session)
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Logout successful'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/auth/verify:
+    get:
+      tags:
+        - Authentication
+      summary: Verify JWT token
+      description: Verify if the current JWT token is valid
+      responses:
+        '200':
+          description: Token is valid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Token is valid'
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/auth/health:
+    get:
+      tags:
+        - Authentication
+      summary: Auth service health
+      description: Check auth service status and configuration
+      security: []
+      responses:
+        '200':
+          description: Auth service status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: 'OK'
+                  message:
+                    type: string
+                    example: 'Auth service is running'
+                  services:
+                    type: object
+                    properties:
+                      jwtAuth:
+                        type: string
+                        example: 'enabled'
+                      googleOAuth:
+                        type: string
+                        example: 'enabled'
+                      database:
+                        type: string
+                        example: 'connected'
+
+  # Google OAuth Endpoints
+  /api/auth/google:
+    get:
+      tags:
+        - Authentication
+        - Google OAuth
+      summary: Google OAuth login
+      description: Initiate Google OAuth login flow
+      security: []
+      responses:
+        '302':
+          description: Redirect to Google OAuth
+        '503':
+          description: Google OAuth not configured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/google/callback:
+    get:
+      tags:
+        - Authentication
+        - Google OAuth
+      summary: Google OAuth callback
+      description: Handle Google OAuth callback and return JWT token
+      security: []
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+          description: OAuth authorization code from Google
+      responses:
+        '200':
+          description: OAuth login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Google OAuth login successful'
+                  data:
+                    $ref: '#/components/schemas/AuthResponse'
+        '302':
+          description: Redirect on failure
+        '503':
+          description: Google OAuth not configured
+
+  # Product Endpoints
+  /api/products:
+    get:
+      tags:
+        - Products
+      summary: Get all products
+      description: Retrieve all products with pagination and filtering
+      security: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+          description: Number of items per page
+        - name: category
+          in: query
+          schema:
+            type: string
+          description: Filter by product category
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+            format: float
+          description: Minimum price filter
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+            format: float
+          description: Maximum price filter
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search in product name and description
+        - name: inStock
+          in: query
+          schema:
+            type: boolean
+          description: Filter by stock availability
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [name, price, createdAt, stock]
+            default: createdAt
+          description: Sort field
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order
+      responses:
+        '200':
+          description: Products retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Products retrieved successfully'
+                  data:
+                    $ref: '#/components/schemas/ProductListResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+    post:
+      tags:
+        - Products
+        - Admin
+      summary: Create a new product
+      description: Create a new product (Admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreateRequest'
+      responses:
+        '201':
+          description: Product created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Product created successfully'
+                  data:
+                    type: object
+                    properties:
+                      product:
+                        $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/products/{id}:
+    get:
+      tags:
+        - Products
+      summary: Get product by ID
+      description: Retrieve a specific product by its ID
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Product ID
+      responses:
+        '200':
+          description: Product retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Product retrieved successfully'
+                  data:
+                    type: object
+                    properties:
+                      product:
+                        $ref: '#/components/schemas/Product'
+        '400':
+          description: Invalid product ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      tags:
+        - Products
+        - Admin
+      summary: Update product
+      description: Update an existing product (Admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Product ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductUpdateRequest'
+      responses:
+        '200':
+          description: Product updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Product updated successfully'
+                  data:
+                    type: object
+                    properties:
+                      product:
+                        $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Product not found
+
+    delete:
+      tags:
+        - Products
+        - Admin
+      summary: Delete product
+      description: Delete a product (Admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Product ID
+      responses:
+        '200':
+          description: Product deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Product deleted successfully'
+        '400':
+          description: Invalid product ID
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Product not found
+
+  /api/products/search:
+    get:
+      tags:
+        - Products
+      summary: Search products
+      description: Search for products by name and description
+      security: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Search query
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: Search completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Search completed successfully'
+                  data:
+                    $ref: '#/components/schemas/ProductListResponse'
+        '400':
+          description: Search query required
+
+  /api/products/categories:
+    get:
+      tags:
+        - Products
+      summary: Get all categories
+      description: Retrieve all product categories
+      security: []
+      responses:
+        '200':
+          description: Categories retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Categories retrieved successfully'
+                  data:
+                    type: object
+                    properties:
+                      categories:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CategoryResponse'
+
+  /api/products/category/{category}:
+    get:
+      tags:
+        - Products
+      summary: Get products by category
+      description: Retrieve products filtered by category
+      security: []
+      parameters:
+        - name: category
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Product category
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: Products retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Products retrieved successfully'
+                  data:
+                    $ref: '#/components/schemas/ProductListResponse'
+        '400':
+          description: Invalid category
+
+  /api/products/{id}/stock:
+    patch:
+      tags:
+        - Products
+        - Admin
+      summary: Update product stock
+      description: Set the absolute stock quantity of a product (Admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Product ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                stock:
+                  type: integer
+                  minimum: 0
+                  description: Absolute stock quantity to set
+              required:
+                - stock
+      responses:
+        '200':
+          description: Stock updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Stock updated successfully'
+                  data:
+                    type: object
+                    properties:
+                      product:
+                        $ref: '#/components/schemas/Product'
+        '400':
+          description: Invalid request
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Product not found
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for authentication
+
+  schemas:
+    # Authentication Schemas
+    RegisterRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+      properties:
+        name:
+          type: string
+          minLength: 2
+          example: 'John Doe'
+        email:
+          type: string
+          format: email
+          example: 'john@example.com'
+        password:
+          type: string
+          minLength: 6
+          example: 'password123'
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: 'john@example.com'
+        password:
+          type: string
+          example: 'password123'
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/UserPublic'
+        token:
+          type: string
+          example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: '123e4567-e89b-12d3-a456-426614174000'
+        email:
+          type: string
+          format: email
+          example: 'john@example.com'
+        name:
+          type: string
+          example: 'John Doe'
+        role:
+          type: string
+          enum: [USER, ADMIN]
+          example: 'USER'
+        googleId:
+          type: string
+          nullable: true
+          example: null
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    UserPublic:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        role:
+          type: string
+          enum: [USER, ADMIN]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    # Product Schemas
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: '123e4567-e89b-12d3-a456-426614174000'
+        name:
+          type: string
+          example: 'Wireless Bluetooth Headphones'
+        description:
+          type: string
+          example: 'High-quality wireless headphones with noise cancellation'
+        price:
+          type: number
+          format: float
+          example: 199.99
+        category:
+          type: string
+          example: 'Electronics'
+        imageUrl:
+          type: string
+          format: uri
+          nullable: true
+          example: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500'
+        stock:
+          type: integer
+          minimum: 0
+          example: 50
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ProductCreateRequest:
+      type: object
+      required:
+        - name
+        - description
+        - price
+        - category
+        - stock
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: 'Wireless Bluetooth Headphones'
+        description:
+          type: string
+          minLength: 1
+          example: 'High-quality wireless headphones with noise cancellation'
+        price:
+          type: number
+          format: float
+          minimum: 0.01
+          example: 199.99
+        category:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: 'Electronics'
+        imageUrl:
+          type: string
+          format: uri
+          nullable: true
+          example: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500'
+        stock:
+          type: integer
+          minimum: 0
+          example: 50
+
+    ProductUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          minLength: 1
+        price:
+          type: number
+          format: float
+          minimum: 0.01
+        category:
+          type: string
+          minLength: 1
+          maxLength: 100
+        imageUrl:
+          type: string
+          format: uri
+          nullable: true
+        stock:
+          type: integer
+          minimum: 0
+
+    ProductListResponse:
+      type: object
+      properties:
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+              example: 1
+            limit:
+              type: integer
+              example: 10
+            total:
+              type: integer
+              example: 6
+            totalPages:
+              type: integer
+              example: 1
+
+    CategoryResponse:
+      type: object
+      properties:
+        name:
+          type: string
+          example: 'Electronics'
+        count:
+          type: integer
+          example: 25
+
+    # Error Schemas
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: 'Bad Request'
+        message:
+          type: string
+          example: 'Invalid input provided'
+
+    ValidationError:
+      type: object
+      properties:
+        error:
+          type: string
+          example: 'Validation failed'
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+              expected:
+                type: string
+              received:
+                type: string
+              path:
+                type: array
+                items:
+                  type: string
+              message:
+                type: string
+
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: 'Unauthorized'
+              message:
+                type: string
+                example: 'Invalid or missing token'
+
+    Forbidden:
+      description: Access forbidden
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: 'Forbidden'
+              message:
+                type: string
+                example: 'Admin access required'
+
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+
+tags:
+  - name: Health
+    description: Health check endpoints
+  - name: Info
+    description: API information endpoints
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Google OAuth
+    description: Google OAuth integration
+  - name: Products
+    description: Product catalog management
+  - name: Admin
+    description: Admin-only operations
