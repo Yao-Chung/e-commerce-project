@@ -19,7 +19,7 @@ const createProductSchema = z.object({
     .string()
     .min(1, 'Category is required')
     .max(100, 'Category too long'),
-  imageUrl: z.string().url('Invalid image URL').nullable().optional(),
+  imageUrl: z.url('Invalid image URL').nullable().optional(),
   stock: z.number().int().min(0, 'Stock cannot be negative'),
 })
 
@@ -36,7 +36,7 @@ const updateProductSchema = z.object({
     .min(1, 'Category is required')
     .max(100, 'Category too long')
     .optional(),
-  imageUrl: z.string().url('Invalid image URL').nullable().optional(),
+  imageUrl: z.url('Invalid image URL').nullable().optional(),
   stock: z.number().int().min(0, 'Stock cannot be negative').optional(),
 })
 
