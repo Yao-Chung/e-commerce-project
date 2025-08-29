@@ -5,6 +5,11 @@ import {
   withAuth,
   requireAdmin,
 } from '../middleware/auth.middleware'
+import {
+  uploadSingle,
+  handleUploadError,
+} from '../middleware/upload.middleware'
+import { ProductUpdateWithImageRequest } from '../types/upload.types'
 
 const router: Router = Router()
 
@@ -57,6 +62,34 @@ router.patch(
   withAuth((req, res) => {
     requireAdmin(req, res, () => {
       productController.updateStock(req, res)
+    })
+  })
+)
+
+// Product creation and update with image upload
+router.post(
+  '/with-image',
+  authenticateJWT,
+  uploadSingle('image'),
+  handleUploadError,
+  withAuth((req, res) => {
+    requireAdmin(req, res, () => {
+      productController.createProductWithImage(req, res)
+    })
+  })
+)
+
+router.put(
+  '/:id/with-image',
+  authenticateJWT,
+  uploadSingle('image'),
+  handleUploadError,
+  withAuth((req, res) => {
+    requireAdmin(req, res, () => {
+      productController.updateProductWithImage(
+        req as ProductUpdateWithImageRequest,
+        res
+      )
     })
   })
 )

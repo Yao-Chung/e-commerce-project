@@ -6,6 +6,7 @@ import dotenv from 'dotenv'
 import passport from './config/passport.config'
 import authRoutes from './routes/auth.routes'
 import productRoutes from './routes/product.routes'
+import uploadRoutes from './routes/upload.routes'
 
 // Load environment variables
 dotenv.config()
@@ -40,6 +41,7 @@ app.get('/health', (_, res): void => {
 // Mount routes
 app.use('/api/auth', authRoutes)
 app.use('/api/products', productRoutes)
+app.use('/api/upload', uploadRoutes)
 
 // API routes
 app.get('/api', (_, res): void => {
@@ -49,6 +51,7 @@ app.get('/api', (_, res): void => {
       health: '/health',
       auth: '/api/auth',
       products: '/api/products',
+      upload: '/api/upload',
       cart: '/api/cart',
       orders: '/api/orders',
       payments: '/api/payments',

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { z } from 'zod'
 import { productService } from '../services/product.service'
+import { uploadService } from '../services/upload.service'
 import {
   ProductCreateRequest,
   ProductUpdateRequest,
@@ -9,6 +10,10 @@ import {
   ProductQueryParams,
 } from '../types/product.types'
 import { AuthenticatedRequest } from '../types/auth.types'
+import {
+  ProductCreateWithImageRequest,
+  ProductUpdateWithImageRequest,
+} from '../types/upload.types'
 
 // Validation schemas
 const createProductSchema = z.object({
@@ -396,6 +401,148 @@ export class ProductController {
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to update stock',
+      })
+    }
+  }
+
+  // Create product with image upload (Admin only)
+  async createProductWithImage(
+    req: ProductCreateWithImageRequest,
+    res: Response
+  ): Promise<void> {
+    try {
+      const validationResult = createProductSchema.safeParse(req.body)
+      if (!validationResult.success) {
+        res.status(400).json({
+          error: 'Validation failed',
+          details: validationResult.error.issues,
+        })
+        return
+      }
+
+      let imageUrl: string | null = null
+
+      // Upload image to Cloudinary if provided
+      if (req.file) {
+        const validation = uploadService.validateImage(req.file)
+        if (!validation.isValid) {
+          res.status(400).json({
+            error: 'Invalid Image',
+            message: validation.error,
+          })
+          return
+        }
+
+        const uploadResult = await uploadService.uploadImage(
+          req.file,
+          'product_images'
+        )
+        imageUrl = uploadResult.secure_url
+      }
+
+      const productData: ProductCreateRequest = {
+        ...validationResult.data,
+        imageUrl,
+      }
+
+      const product = await productService.createProduct(productData)
+
+      res.status(201).json({
+        message: 'Product created successfully with image',
+        data: { product },
+      })
+    } catch (error) {
+      console.error('Create product with image error:', error)
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to create product with image',
+      })
+    }
+  }
+
+  // Update product with image upload (Admin only)
+  async updateProductWithImage(
+    req: ProductUpdateWithImageRequest,
+    res: Response
+  ): Promise<void> {
+    try {
+      const { id } = req.params
+
+      if (!id || typeof id !== 'string') {
+        res.status(400).json({
+          error: 'Bad request',
+          message: 'Product ID is required',
+        })
+        return
+      }
+
+      const validationResult = updateProductSchema.safeParse(req.body)
+      if (!validationResult.success) {
+        res.status(400).json({
+          error: 'Validation failed',
+          details: validationResult.error.issues,
+        })
+        return
+      }
+
+      let updateData: ProductUpdateRequest = validationResult.data
+
+      // Upload new image to Cloudinary if provided
+      if (req.file) {
+        const validation = uploadService.validateImage(req.file)
+        if (!validation.isValid) {
+          res.status(400).json({
+            error: 'Invalid Image',
+            message: validation.error,
+          })
+          return
+        }
+
+        // Get current product to delete old image if it exists
+        const existingProduct = await productService.getProductById(id)
+        if (existingProduct && existingProduct.imageUrl) {
+          try {
+            // Extract public_id from Cloudinary URL and delete old image
+            const urlParts: string[] = existingProduct.imageUrl.split('/')
+            const publicIdWithExtension: string = urlParts[urlParts.length - 1]
+            const publicId: string = publicIdWithExtension.split('.')[0]
+            const fullPublicId: string = `e-commerce/products/${publicId}`
+            await uploadService.deleteImage(fullPublicId)
+          } catch (deleteError) {
+            console.warn('Failed to delete old image:', deleteError)
+            // Continue with upload even if deletion fails
+          }
+        }
+
+        const uploadResult = await uploadService.uploadImage(
+          req.file,
+          'product_images'
+        )
+        updateData = {
+          ...updateData,
+          imageUrl: uploadResult.secure_url,
+        }
+      }
+
+      const product = await productService.updateProduct(id, updateData)
+
+      if (!product) {
+        res.status(404).json({
+          error: 'Not found',
+          message: 'Product not found',
+        })
+        return
+      }
+
+      res.json({
+        message: 'Product updated successfully with image',
+        data: { product },
+      })
+    } catch (error) {
+      console.error('Update product with image error:', error)
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to update product with image',
       })
     }
   }

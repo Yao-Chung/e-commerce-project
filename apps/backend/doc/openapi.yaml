@@ -680,6 +680,223 @@ paths:
         '404':
           description: Product not found
 
+  # Upload Endpoints
+  /api/upload/single:
+    post:
+      tags:
+        - Upload
+      summary: Upload single image
+      description: Upload a single image to Cloudinary (authenticated users)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: Image file to upload
+                uploadType:
+                  type: string
+                  enum: [product_images, thumbnails, user_avatars]
+                  default: product_images
+                  description: Type of upload for different transformations
+              required:
+                - image
+      responses:
+        '201':
+          description: Image uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Image uploaded successfully'
+                  data:
+                    type: object
+                    properties:
+                      image:
+                        $ref: '#/components/schemas/UploadResult'
+        '400':
+          description: Invalid file or validation error
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/upload/multiple:
+    post:
+      tags:
+        - Upload
+      summary: Upload multiple images
+      description: Upload multiple images to Cloudinary (authenticated users)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: Image files to upload (max 10)
+                uploadType:
+                  type: string
+                  enum: [product_images, thumbnails, user_avatars]
+                  default: product_images
+              required:
+                - images
+      responses:
+        '201':
+          description: Images uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      images:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/UploadResult'
+                      count:
+                        type: integer
+        '400':
+          description: Invalid files or validation error
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/products/with-image:
+    post:
+      tags:
+        - Products
+        - Admin
+        - Upload
+      summary: Create product with image
+      description: Create a new product with image upload (Admin only)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: 'Wireless Bluetooth Headphones'
+                description:
+                  type: string
+                  example: 'High-quality wireless headphones'
+                price:
+                  type: number
+                  example: 199.99
+                category:
+                  type: string
+                  example: 'Electronics'
+                stock:
+                  type: integer
+                  example: 50
+                image:
+                  type: string
+                  format: binary
+                  description: Product image file
+              required:
+                - name
+                - description
+                - price
+                - category
+                - stock
+      responses:
+        '201':
+          description: Product created successfully with image
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      product:
+                        $ref: '#/components/schemas/Product'
+        '400':
+          description: Validation error or invalid image
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/products/{id}/with-image:
+    put:
+      tags:
+        - Products
+        - Admin
+        - Upload
+      summary: Update product with image
+      description: Update an existing product with optional image upload (Admin only)
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+            format: uuid
+          description: Product ID
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                price:
+                  type: number
+                category:
+                  type: string
+                stock:
+                  type: integer
+                image:
+                  type: string
+                  format: binary
+                  description: New product image file (optional)
+      responses:
+        '200':
+          description: Product updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      product:
+                        $ref: '#/components/schemas/Product'
+        '400':
+          description: Validation error or invalid image
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Product not found
+
 components:
   securitySchemes:
     BearerAuth:
@@ -952,6 +1169,37 @@ components:
               message:
                 type: string
 
+    # Upload Schemas
+    UploadResult:
+      type: object
+      properties:
+        public_id:
+          type: string
+          example: 'e-commerce/products/abc123'
+        url:
+          type: string
+          format: uri
+          example: 'http://res.cloudinary.com/demo/image/upload/v1234567890/e-commerce/products/abc123.jpg'
+        secure_url:
+          type: string
+          format: uri
+          example: 'https://res.cloudinary.com/demo/image/upload/v1234567890/e-commerce/products/abc123.jpg'
+        width:
+          type: integer
+          example: 800
+        height:
+          type: integer
+          example: 600
+        format:
+          type: string
+          example: 'jpg'
+        resource_type:
+          type: string
+          example: 'image'
+        bytes:
+          type: integer
+          example: 245760
+
   responses:
     Unauthorized:
       description: Authentication required
@@ -999,5 +1247,7 @@ tags:
     description: Google OAuth integration
   - name: Products
     description: Product catalog management
+  - name: Upload
+    description: Image upload and management
   - name: Admin
     description: Admin-only operations
