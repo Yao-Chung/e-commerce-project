@@ -57,6 +57,12 @@ export class ProductService {
             mode: 'insensitive',
           },
         },
+        {
+          category: {
+            contains: filters.search,
+            mode: 'insensitive',
+          },
+        },
       ]
     }
 
@@ -243,52 +249,6 @@ export class ProductService {
     }
 
     return product.stock >= requestedQuantity
-  }
-
-  // Search products
-  async searchProducts(
-    query: string,
-    page: number = 1,
-    limit: number = 10
-  ): Promise<{ products: Product[]; total: number }> {
-    const skip: number = (page - 1) * limit
-
-    const where: Prisma.ProductWhereInput = {
-      OR: [
-        {
-          name: {
-            contains: query,
-            mode: 'insensitive',
-          },
-        },
-        {
-          description: {
-            contains: query,
-            mode: 'insensitive',
-          },
-        },
-        {
-          category: {
-            contains: query,
-            mode: 'insensitive',
-          },
-        },
-      ],
-    }
-
-    const [products, total] = await Promise.all([
-      prisma.product.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: {
-          createdAt: 'desc',
-        },
-      }),
-      prisma.product.count({ where }),
-    ])
-
-    return { products, total }
   }
 }
 

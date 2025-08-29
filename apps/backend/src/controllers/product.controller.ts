@@ -347,53 +347,6 @@ export class ProductController {
     }
   }
 
-  // Search products
-  async searchProducts(req: Request, res: Response): Promise<void> {
-    try {
-      const { q } = req.query
-      const page: number = parseInt((req.query.page as string) || '1')
-      const limit: number = Math.min(
-        parseInt((req.query.limit as string) || '10'),
-        50
-      )
-
-      if (!q || typeof q !== 'string' || q.trim().length === 0) {
-        res.status(400).json({
-          error: 'Bad request',
-          message: 'Search query is required',
-        })
-        return
-      }
-
-      const { products, total } = await productService.searchProducts(
-        q.trim(),
-        page,
-        limit
-      )
-
-      const response: ProductListResponse = {
-        products,
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages: Math.ceil(total / limit),
-        },
-      }
-
-      res.json({
-        message: 'Search completed successfully',
-        data: response,
-      })
-    } catch (error) {
-      console.error('Search products error:', error)
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to search products',
-      })
-    }
-  }
-
   // Update product stock (Admin only)
   async updateStock(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {

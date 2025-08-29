@@ -10,7 +10,6 @@ const router: Router = Router()
 
 // Public routes (no authentication required)
 router.get('/', productController.getAllProducts.bind(productController))
-router.get('/search', productController.searchProducts.bind(productController))
 router.get(
   '/categories',
   productController.getAllCategories.bind(productController)
