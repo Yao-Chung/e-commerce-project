@@ -167,7 +167,7 @@ export class ProductController {
   // Get product by ID
   async getProductById(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params
+      const { id } = req.params as { id: string }
 
       if (!id || typeof id !== 'string') {
         res.status(400).json({
@@ -203,7 +203,7 @@ export class ProductController {
   // Update product (Admin only)
   async updateProduct(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const { id } = req.params
+      const { id } = req.params as { id: string }
 
       if (!id || typeof id !== 'string') {
         res.status(400).json({
@@ -250,7 +250,7 @@ export class ProductController {
   // Delete product (Admin only)
   async deleteProduct(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const { id } = req.params
+      const { id } = req.params as { id: string }
 
       if (!id || typeof id !== 'string') {
         res.status(400).json({
@@ -397,8 +397,8 @@ export class ProductController {
   // Update product stock (Admin only)
   async updateStock(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const { id } = req.params
-      const { quantity } = req.body
+      const { id } = req.params as { id: string }
+      const { quantity } = req.body as { quantity: number }
 
       if (!id || typeof id !== 'string') {
         res.status(400).json({
