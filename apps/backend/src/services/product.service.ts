@@ -217,9 +217,7 @@ export class ProductService {
       return await prisma.product.update({
         where: { id },
         data: {
-          stock: {
-            increment: quantity,
-          },
+          stock: quantity,
         },
       })
     } catch (error: unknown) {

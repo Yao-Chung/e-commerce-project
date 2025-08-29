@@ -398,7 +398,7 @@ export class ProductController {
   async updateStock(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params as { id: string }
-      const { quantity } = req.body as { quantity: number }
+      const { stock } = req.body as { stock: number }
 
       if (!id || typeof id !== 'string') {
         res.status(400).json({
@@ -408,15 +408,23 @@ export class ProductController {
         return
       }
 
-      if (typeof quantity !== 'number') {
+      if (typeof stock !== 'number') {
         res.status(400).json({
           error: 'Bad request',
-          message: 'Quantity must be a number',
+          message: 'Stock must be a number',
         })
         return
       }
 
-      const product = await productService.updateStock(id, quantity)
+      if (stock < 0) {
+        res.status(400).json({
+          error: 'Bad request',
+          message: 'Stock cannot be negative',
+        })
+        return
+      }
+
+      const product = await productService.updateStock(id, stock)
 
       if (!product) {
         res.status(404).json({
