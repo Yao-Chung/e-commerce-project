@@ -1,10 +1,7 @@
-import { Router } from 'express'
+import { Router, Request, Response } from 'express'
 import { uploadController } from '../controllers/upload.controller'
-import {
-  authenticateJWT,
-  withAuth,
-  requireAdmin,
-} from '../middleware/auth.middleware'
+import { authenticateJWT, requireAdmin } from '../middleware/auth.middleware'
+import { AuthenticatedRequest } from '../types/auth.types'
 import {
   uploadSingle,
   uploadMultiple,
@@ -22,9 +19,9 @@ router.post(
   uploadSingle('image'),
   handleUploadError,
   requireSingleFile,
-  withAuth((req, res) => {
-    uploadController.uploadSingle(req, res)
-  })
+  (req: Request, res: Response) => {
+    uploadController.uploadSingle(req as AuthenticatedRequest, res)
+  }
 )
 
 router.post(
@@ -33,47 +30,43 @@ router.post(
   uploadMultiple('images', 10),
   handleUploadError,
   requireFiles,
-  withAuth((req, res) => {
-    uploadController.uploadMultiple(req, res)
-  })
+  (req: Request, res: Response) => {
+    uploadController.uploadMultiple(req as AuthenticatedRequest, res)
+  }
 )
 
 // Admin-only endpoints for image management
-router.delete(
-  '/delete',
-  authenticateJWT,
-  withAuth((req, res) => {
-    requireAdmin(req, res, () => {
-      uploadController.deleteImage(req, res)
-    })
+router.delete('/delete', authenticateJWT, (req: Request, res: Response) => {
+  requireAdmin(req as AuthenticatedRequest, res, () => {
+    uploadController.deleteImage(req as AuthenticatedRequest, res)
   })
-)
+})
 
 router.delete(
   '/delete-multiple',
   authenticateJWT,
-  withAuth((req, res) => {
-    requireAdmin(req, res, () => {
-      uploadController.deleteMultiple(req, res)
+  (req: Request, res: Response) => {
+    requireAdmin(req as AuthenticatedRequest, res, () => {
+      uploadController.deleteMultiple(req as AuthenticatedRequest, res)
     })
-  })
+  }
 )
 
 // Image information endpoints (authenticated users)
 router.get(
   '/details/:publicId',
   authenticateJWT,
-  withAuth((req, res) => {
-    uploadController.getImageDetails(req, res)
-  })
+  (req: Request, res: Response) => {
+    uploadController.getImageDetails(req as AuthenticatedRequest, res)
+  }
 )
 
 router.post(
   '/transform/:publicId',
   authenticateJWT,
-  withAuth((req, res) => {
-    uploadController.generateTransformationUrl(req, res)
-  })
+  (req: Request, res: Response) => {
+    uploadController.generateTransformationUrl(req as AuthenticatedRequest, res)
+  }
 )
 
 export default router

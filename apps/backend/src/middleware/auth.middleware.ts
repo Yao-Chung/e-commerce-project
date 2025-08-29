@@ -52,24 +52,6 @@ export function getAuthenticatedRequest(
   return null
 }
 
-// Create a wrapper for authenticated route handlers
-export function withAuth(
-  // eslint-disable-next-line no-unused-vars
-  handler: (req: AuthenticatedRequest, res: Response) => void | Promise<void>
-) {
-  return (req: Request, res: Response): void => {
-    const authReq: AuthenticatedRequest | null = getAuthenticatedRequest(req)
-    if (authReq) {
-      void handler(authReq, res)
-    } else {
-      res.status(401).json({
-        error: 'Unauthorized',
-        message: 'Authentication required',
-      })
-    }
-  }
-}
-
 // Admin role middleware
 export const requireAdmin = (
   req: AuthenticatedRequest,

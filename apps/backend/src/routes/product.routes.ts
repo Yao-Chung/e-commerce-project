@@ -1,10 +1,7 @@
-import { Router } from 'express'
+import { Router, Request, Response } from 'express'
 import { productController } from '../controllers/product.controller'
-import {
-  authenticateJWT,
-  withAuth,
-  requireAdmin,
-} from '../middleware/auth.middleware'
+import { authenticateJWT, requireAdmin } from '../middleware/auth.middleware'
+import { AuthenticatedRequest } from '../types/auth.types'
 import {
   uploadSingle,
   handleUploadError,
@@ -26,45 +23,29 @@ router.get(
 router.get('/:id', productController.getProductById.bind(productController))
 
 // Admin-only routes (authentication + admin role required)
-router.post(
-  '/',
-  authenticateJWT,
-  withAuth((req, res) => {
-    requireAdmin(req, res, () => {
-      productController.createProduct(req, res)
-    })
+router.post('/', authenticateJWT, (req: Request, res: Response) => {
+  requireAdmin(req as AuthenticatedRequest, res, () => {
+    productController.createProduct(req as AuthenticatedRequest, res)
   })
-)
+})
 
-router.put(
-  '/:id',
-  authenticateJWT,
-  withAuth((req, res) => {
-    requireAdmin(req, res, () => {
-      productController.updateProduct(req, res)
-    })
+router.put('/:id', authenticateJWT, (req: Request, res: Response) => {
+  requireAdmin(req as AuthenticatedRequest, res, () => {
+    productController.updateProduct(req as AuthenticatedRequest, res)
   })
-)
+})
 
-router.delete(
-  '/:id',
-  authenticateJWT,
-  withAuth((req, res) => {
-    requireAdmin(req, res, () => {
-      productController.deleteProduct(req, res)
-    })
+router.delete('/:id', authenticateJWT, (req: Request, res: Response) => {
+  requireAdmin(req as AuthenticatedRequest, res, () => {
+    productController.deleteProduct(req as AuthenticatedRequest, res)
   })
-)
+})
 
-router.patch(
-  '/:id/stock',
-  authenticateJWT,
-  withAuth((req, res) => {
-    requireAdmin(req, res, () => {
-      productController.updateStock(req, res)
-    })
+router.patch('/:id/stock', authenticateJWT, (req: Request, res: Response) => {
+  requireAdmin(req as AuthenticatedRequest, res, () => {
+    productController.updateStock(req as AuthenticatedRequest, res)
   })
-)
+})
 
 // Product creation and update with image upload
 router.post(
@@ -72,11 +53,11 @@ router.post(
   authenticateJWT,
   uploadSingle('image'),
   handleUploadError,
-  withAuth((req, res) => {
-    requireAdmin(req, res, () => {
-      productController.createProductWithImage(req, res)
+  (req: Request, res: Response) => {
+    requireAdmin(req as AuthenticatedRequest, res, () => {
+      productController.createProductWithImage(req as AuthenticatedRequest, res)
     })
-  })
+  }
 )
 
 router.put(
@@ -84,14 +65,14 @@ router.put(
   authenticateJWT,
   uploadSingle('image'),
   handleUploadError,
-  withAuth((req, res) => {
-    requireAdmin(req, res, () => {
+  (req: Request, res: Response) => {
+    requireAdmin(req as AuthenticatedRequest, res, () => {
       productController.updateProductWithImage(
         req as ProductUpdateWithImageRequest,
         res
       )
     })
-  })
+  }
 )
 
 export default router
