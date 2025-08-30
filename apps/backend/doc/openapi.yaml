@@ -271,7 +271,6 @@ paths:
   /api/auth/google:
     get:
       tags:
-        - Authentication
         - Google OAuth
       summary: Google OAuth login
       description: Initiate Google OAuth login flow
@@ -289,7 +288,6 @@ paths:
   /api/auth/google/callback:
     get:
       tags:
-        - Authentication
         - Google OAuth
       summary: Google OAuth callback
       description: Handle Google OAuth callback and return JWT token
@@ -676,101 +674,6 @@ paths:
         '404':
           description: Product not found
 
-  # Upload Endpoints
-  /api/upload/single:
-    post:
-      tags:
-        - Upload
-      summary: Upload single image
-      description: Upload a single image to Cloudinary (authenticated users)
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                image:
-                  type: string
-                  format: binary
-                  description: Image file to upload
-                uploadType:
-                  type: string
-                  enum: [product_images, thumbnails, user_avatars]
-                  default: product_images
-                  description: Type of upload for different transformations
-              required:
-                - image
-      responses:
-        '201':
-          description: Image uploaded successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: 'Image uploaded successfully'
-                  data:
-                    type: object
-                    properties:
-                      image:
-                        $ref: '#/components/schemas/UploadResult'
-        '400':
-          description: Invalid file or validation error
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
-  /api/upload/multiple:
-    post:
-      tags:
-        - Upload
-      summary: Upload multiple images
-      description: Upload multiple images to Cloudinary (authenticated users)
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                images:
-                  type: array
-                  items:
-                    type: string
-                    format: binary
-                  description: Image files to upload (max 10)
-                uploadType:
-                  type: string
-                  enum: [product_images, thumbnails, user_avatars]
-                  default: product_images
-              required:
-                - images
-      responses:
-        '201':
-          description: Images uploaded successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  data:
-                    type: object
-                    properties:
-                      images:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/UploadResult'
-                      count:
-                        type: integer
-        '400':
-          description: Invalid files or validation error
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
   /api/products/with-image:
     post:
       tags:
@@ -913,6 +816,274 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           description: Product not found
+
+  # Upload Endpoints
+  /api/upload/single:
+    post:
+      tags:
+        - Upload
+      summary: Upload single image
+      description: Upload a single image to Cloudinary (authenticated users)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: Image file to upload
+                uploadType:
+                  type: string
+                  enum: [product_images, thumbnails, user_avatars]
+                  default: product_images
+                  description: Type of upload for different transformations
+              required:
+                - image
+      responses:
+        '201':
+          description: Image uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Image uploaded successfully'
+                  data:
+                    type: object
+                    properties:
+                      image:
+                        $ref: '#/components/schemas/UploadResult'
+        '400':
+          description: Invalid file or validation error
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/upload/multiple:
+    post:
+      tags:
+        - Upload
+      summary: Upload multiple images
+      description: Upload multiple images to Cloudinary (authenticated users)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: Image files to upload (max 10)
+                uploadType:
+                  type: string
+                  enum: [product_images, thumbnails, user_avatars]
+                  default: product_images
+              required:
+                - images
+      responses:
+        '201':
+          description: Images uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      images:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/UploadResult'
+                      count:
+                        type: integer
+        '400':
+          description: Invalid files or validation error
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/upload/delete:
+    delete:
+      tags:
+        - Upload
+      summary: Delete image (Admin only)
+      description: Delete an image from Cloudinary by public ID (Admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                publicId:
+                  type: string
+                  description: Cloudinary public ID of the image to delete
+                  example: 'e-commerce/products/abc123'
+              required:
+                - publicId
+      responses:
+        '200':
+          description: Image deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Image deleted successfully'
+                  data:
+                    type: object
+                    properties:
+                      result:
+                        type: string
+                        example: 'ok'
+        '400':
+          description: Invalid request
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/upload/delete-multiple:
+    delete:
+      tags:
+        - Upload
+      summary: Delete multiple images (Admin only)
+      description: Delete multiple images from Cloudinary by public IDs (Admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                publicIds:
+                  type: array
+                  items:
+                    type: string
+                  description: Array of Cloudinary public IDs to delete
+                  example:
+                    ['e-commerce/products/abc123', 'e-commerce/products/def456']
+              required:
+                - publicIds
+      responses:
+        '200':
+          description: Images deletion attempted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      deleted:
+                        type: object
+                        description: Deletion results by public ID
+        '400':
+          description: Invalid request
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/upload/details/{publicId}:
+    get:
+      tags:
+        - Upload
+      summary: Get image details
+      description: Get detailed information about an image from Cloudinary
+      parameters:
+        - name: publicId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Cloudinary public ID of the image
+      responses:
+        '200':
+          description: Image details retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Image details retrieved successfully'
+                  data:
+                    type: object
+                    properties:
+                      image:
+                        type: object
+                        description: Cloudinary image details
+        '400':
+          description: Invalid public ID
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/upload/transform/{publicId}:
+    post:
+      tags:
+        - Upload
+      summary: Generate transformation URL
+      description: Generate a URL with custom transformations for an existing image
+      parameters:
+        - name: publicId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Cloudinary public ID of the image
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                transformations:
+                  type: object
+                  description: Cloudinary transformation parameters
+                  example: { 'width': 300, 'height': 300, 'crop': 'fill' }
+      responses:
+        '200':
+          description: Transformation URL generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Transformation URL generated successfully'
+                  data:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+                      publicId:
+                        type: string
+                      transformations:
+                        type: object
+        '400':
+          description: Invalid public ID
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
 components:
   securitySchemes:
