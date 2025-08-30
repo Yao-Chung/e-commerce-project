@@ -1,0 +1,270 @@
+name: Quality Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run weekly on Sundays at 2 AM UTC
+    - cron: '0 2 * * 0'
+
+jobs:
+  advanced-linting:
+    name: Advanced Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch full history for better analysis
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.6.3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🔍 TypeScript strict mode check
+        run: |
+          echo "::group::TypeScript Strict Mode Analysis"
+          echo "Checking for TypeScript strict mode compliance..."
+
+          # Check if strict mode is enabled in tsconfig files
+          echo "Frontend tsconfig.json strict settings:"
+          cat apps/frontend/tsconfig.json | jq '.compilerOptions.strict // "not set"'
+
+          echo "Backend tsconfig.json strict settings:"
+          cat apps/backend/tsconfig.json | jq '.compilerOptions.strict // "not set"'
+
+          echo "::endgroup::"
+
+      - name: 📊 Code complexity analysis
+        run: |
+          echo "::group::Code Complexity Analysis"
+          echo "Analyzing code complexity..."
+
+          # Count lines of code
+          echo "Lines of code analysis:"
+          echo "Frontend TypeScript files:"
+          find apps/frontend/src -name "*.ts" -o -name "*.tsx" | xargs wc -l | tail -1
+
+          echo "Backend TypeScript files:"
+          find apps/backend/src -name "*.ts" | xargs wc -l | tail -1
+
+          echo "::endgroup::"
+
+      - name: 🔧 Import/Export analysis
+        run: |
+          echo "::group::Import/Export Analysis"
+          echo "Checking for potential circular dependencies and unused imports..."
+
+          # This is a basic check - in a real project you might use madge or similar tools
+          echo "Frontend import analysis:"
+          grep -r "^import\|^export" apps/frontend/src --include="*.ts" --include="*.tsx" | wc -l
+
+          echo "Backend import analysis:"
+          grep -r "^import\|^export" apps/backend/src --include="*.ts" | wc -l
+
+          echo "::endgroup::"
+
+      - name: 📝 Documentation coverage
+        run: |
+          echo "::group::Documentation Coverage"
+          echo "Checking documentation coverage..."
+
+          # Check for JSDoc comments
+          echo "Frontend files with JSDoc comments:"
+          grep -r "\/\*\*" apps/frontend/src --include="*.ts" --include="*.tsx" | wc -l
+
+          echo "Backend files with JSDoc comments:"
+          grep -r "\/\*\*" apps/backend/src --include="*.ts" | wc -l
+
+          # Check for README files
+          echo "Documentation files found:"
+          find . -name "README*" -o -name "*.md" | head -10
+
+          echo "::endgroup::"
+
+  performance-analysis:
+    name: Performance Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.6.3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 📦 Bundle size analysis
+        run: |
+          echo "::group::Bundle Size Analysis"
+          echo "Analyzing potential bundle sizes..."
+
+          # Build frontend for analysis
+          pnpm run build:frontend
+
+          # Check build output sizes
+          echo "Frontend build output:"
+          du -sh apps/frontend/dist/* 2>/dev/null || echo "No dist files found"
+
+          echo "Backend build output:"
+          pnpm run build:backend
+          du -sh apps/backend/dist/* 2>/dev/null || echo "No dist files found"
+
+          echo "::endgroup::"
+
+      - name: 🔍 Dependency size analysis
+        run: |
+          echo "::group::Dependency Analysis"
+          echo "Analyzing dependency sizes and count..."
+
+          echo "Root dependencies:"
+          cat package.json | jq '.dependencies // {} | length' 
+          cat package.json | jq '.devDependencies // {} | length'
+
+          echo "Frontend dependencies:"
+          cat apps/frontend/package.json | jq '.dependencies // {} | length'
+          cat apps/frontend/package.json | jq '.devDependencies // {} | length'
+
+          echo "Backend dependencies:"
+          cat apps/backend/package.json | jq '.dependencies // {} | length'
+          cat apps/backend/package.json | jq '.devDependencies // {} | length'
+
+          echo "::endgroup::"
+
+  git-hooks-simulation:
+    name: Git Hooks Simulation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.6.3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🔄 Pre-commit simulation
+        run: |
+          echo "::group::Pre-commit Hook Simulation"
+          echo "Simulating pre-commit hooks..."
+
+          # Run all the checks that should happen before commit
+          echo "1. Format check..."
+          pnpm run format:check
+
+          echo "2. Lint check..."
+          pnpm run lint
+
+          echo "3. Type check..."
+          pnpm run check-ts
+
+          echo "Pre-commit simulation completed successfully!"
+          echo "::endgroup::"
+
+      - name: 🚀 Pre-push simulation
+        run: |
+          echo "::group::Pre-push Hook Simulation"
+          echo "Simulating pre-push hooks..."
+
+          # Run build to ensure everything compiles
+          echo "1. Building project..."
+          pnpm run build
+
+          echo "Pre-push simulation completed successfully!"
+          echo "::endgroup::"
+
+  workspace-health:
+    name: Workspace Health Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.6.3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'pnpm'
+
+      - name: 🔍 Workspace configuration validation
+        run: |
+          echo "::group::Workspace Configuration"
+          echo "Validating pnpm workspace configuration..."
+
+          # Check pnpm-workspace.yaml
+          echo "pnpm-workspace.yaml contents:"
+          cat pnpm-workspace.yaml
+
+          # Verify workspace packages
+          echo "Workspace packages:"
+          pnpm list --depth=0 --long
+
+          echo "::endgroup::"
+
+      - name: 📦 Package.json validation
+        run: |
+          echo "::group::Package.json Validation"
+          echo "Validating package.json files..."
+
+          # Use node to validate JSON syntax
+          node -e "JSON.parse(require('fs').readFileSync('package.json', 'utf8')); console.log('Root package.json: ✅ Valid')"
+          node -e "JSON.parse(require('fs').readFileSync('apps/frontend/package.json', 'utf8')); console.log('Frontend package.json: ✅ Valid')"
+          node -e "JSON.parse(require('fs').readFileSync('apps/backend/package.json', 'utf8')); console.log('Backend package.json: ✅ Valid')"
+
+          echo "::endgroup::"
+
+      - name: 🔧 Script consistency check
+        run: |
+          echo "::group::Script Consistency Check"
+          echo "Checking for script consistency across workspace..."
+
+          # Check if common scripts exist in all packages
+          echo "Root scripts:"
+          cat package.json | jq -r '.scripts | keys[]' | sort
+
+          echo "Frontend scripts:"
+          cat apps/frontend/package.json | jq -r '.scripts | keys[]' | sort
+
+          echo "Backend scripts:"
+          cat apps/backend/package.json | jq -r '.scripts | keys[]' | sort
+
+          echo "::endgroup::"

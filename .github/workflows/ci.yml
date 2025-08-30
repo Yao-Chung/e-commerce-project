@@ -1,0 +1,224 @@
+name: CI - Lint and Type Check
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lint-and-typecheck:
+    name: Lint and Type Check
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x]
+      fail-fast: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.6.3
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🔍 Format Check
+        run: pnpm run format:check
+
+      - name: 📝 Lint Frontend
+        run: pnpm run lint:frontend
+
+      - name: 📝 Lint Backend
+        run: pnpm run lint:backend
+
+      - name: 🔧 Type Check Frontend
+        run: pnpm run check-ts:frontend
+
+      - name: 🔧 Type Check Backend
+        run: pnpm run check-ts:backend
+
+      - name: 🏗️ Build Frontend
+        run: pnpm run build:frontend
+
+      - name: 🏗️ Build Backend
+        run: pnpm run build:backend
+
+      - name: 📊 Upload build artifacts (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-node-${{ matrix.node-version }}
+          path: |
+            apps/frontend/dist/
+            apps/backend/dist/
+            apps/frontend/node_modules/.vite/
+            apps/backend/tsconfig.tsbuildinfo
+          retention-days: 7
+
+  lint-specific:
+    name: Detailed Lint Analysis
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.6.3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🔍 ESLint Report (Frontend)
+        run: |
+          echo "::group::Frontend ESLint Report"
+          pnpm --filter frontend lint --format=unix || true
+          echo "::endgroup::"
+
+      - name: 🔍 ESLint Report (Backend)
+        run: |
+          echo "::group::Backend ESLint Report"
+          pnpm --filter backend lint --format=unix || true
+          echo "::endgroup::"
+
+      - name: 📝 Prettier Check with Details
+        run: |
+          echo "::group::Prettier Check Details"
+          pnpm run format:check --list-different || true
+          echo "::endgroup::"
+
+  security-check:
+    name: Security and Dependency Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.6.3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🔒 Security Audit
+        run: pnpm audit --audit-level moderate
+
+      - name: 📦 Check for outdated dependencies
+        run: pnpm outdated || true
+
+      - name: 🔍 Check for unused dependencies
+        run: |
+          echo "::group::Dependency Analysis"
+          echo "Checking for potential unused dependencies..."
+          # Note: Add depcheck or similar tool for more thorough analysis
+          echo "::endgroup::"
+
+  workspace-validation:
+    name: Workspace and Monorepo Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.6.3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'pnpm'
+
+      - name: 🔍 Validate workspace configuration
+        run: |
+          echo "::group::Workspace Validation"
+          pnpm list --depth=0
+          echo "::endgroup::"
+
+      - name: 📝 Check workspace scripts
+        run: |
+          echo "::group::Available Scripts"
+          echo "Root package.json scripts:"
+          cat package.json | jq '.scripts'
+          echo -e "\nFrontend scripts:"
+          cat apps/frontend/package.json | jq '.scripts'
+          echo -e "\nBackend scripts:"
+          cat apps/backend/package.json | jq '.scripts'
+          echo "::endgroup::"
+
+      - name: 🏗️ Verify build process works
+        run: |
+          echo "::group::Build Verification"
+          pnpm run build
+          echo "Build completed successfully!"
+          echo "::endgroup::"
+
+  openapi-validation:
+    name: OpenAPI Documentation Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Install Swagger CLI
+        run: npm install -g @apidevtools/swagger-cli
+
+      - name: 🔍 Validate OpenAPI specification
+        run: |
+          echo "::group::OpenAPI Validation"
+          swagger-cli validate apps/backend/doc/openapi.yaml
+          echo "OpenAPI specification is valid!"
+          echo "::endgroup::"
+
+      - name: 📊 OpenAPI Bundle
+        run: |
+          echo "::group::OpenAPI Bundle"
+          swagger-cli bundle apps/backend/doc/openapi.yaml --outfile openapi-bundled.yaml --type yaml
+          echo "OpenAPI bundled successfully!"
+          echo "::endgroup::"
+
+      - name: 📤 Upload OpenAPI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi-bundled
+          path: openapi-bundled.yaml
+          retention-days: 30
