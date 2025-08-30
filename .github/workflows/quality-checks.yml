@@ -69,7 +69,10 @@ jobs:
       - name: 📊 Bundle Size Analysis
         run: |
           echo "::group::Bundle Size Analysis"
-          pnpm run build
+          echo "Building frontend..."
+          pnpm run build:frontend
+          echo "Building backend..."
+          pnpm run build:backend
           echo "Frontend build size:" $(du -sh apps/frontend/dist 2>/dev/null || echo "No dist")
           echo "Backend build size:" $(du -sh apps/backend/dist 2>/dev/null || echo "No dist")
           echo "::endgroup::"
