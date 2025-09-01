@@ -8,8 +8,8 @@ function isAuthenticatedRequest(req: Request): req is AuthenticatedRequest {
   return 'user' in req && req.user !== undefined && req.user !== null
 }
 
-// JWT Authentication middleware
-export const authenticateJWT = (
+// JWT Authentication middleware - requires valid JWT token
+export const requireAuth = (
   req: Request,
   res: Response,
   next: NextFunction

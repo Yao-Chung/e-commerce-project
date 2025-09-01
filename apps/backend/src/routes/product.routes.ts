@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express'
 import { productController } from '../controllers/product.controller'
-import { authenticateJWT, requireAdmin } from '../middleware/auth.middleware'
+import { requireAuth, requireAdmin } from '../middleware/auth.middleware'
 import { AuthenticatedRequest } from '../types/auth.types'
 import {
   uploadSingle,
@@ -23,25 +23,25 @@ router.get(
 router.get('/:id', productController.getProductById.bind(productController))
 
 // Admin-only routes (authentication + admin role required)
-router.post('/', authenticateJWT, (req: Request, res: Response) => {
+router.post('/', requireAuth, (req: Request, res: Response) => {
   requireAdmin(req as AuthenticatedRequest, res, () => {
     productController.createProduct(req as AuthenticatedRequest, res)
   })
 })
 
-router.put('/:id', authenticateJWT, (req: Request, res: Response) => {
+router.put('/:id', requireAuth, (req: Request, res: Response) => {
   requireAdmin(req as AuthenticatedRequest, res, () => {
     productController.updateProduct(req as AuthenticatedRequest, res)
   })
 })
 
-router.delete('/:id', authenticateJWT, (req: Request, res: Response) => {
+router.delete('/:id', requireAuth, (req: Request, res: Response) => {
   requireAdmin(req as AuthenticatedRequest, res, () => {
     productController.deleteProduct(req as AuthenticatedRequest, res)
   })
 })
 
-router.patch('/:id/stock', authenticateJWT, (req: Request, res: Response) => {
+router.patch('/:id/stock', requireAuth, (req: Request, res: Response) => {
   requireAdmin(req as AuthenticatedRequest, res, () => {
     productController.updateStock(req as AuthenticatedRequest, res)
   })
@@ -50,7 +50,7 @@ router.patch('/:id/stock', authenticateJWT, (req: Request, res: Response) => {
 // Product creation and update with image upload
 router.post(
   '/with-image',
-  authenticateJWT,
+  requireAuth,
   uploadSingle('image'),
   handleUploadError,
   (req: Request, res: Response) => {
@@ -62,7 +62,7 @@ router.post(
 
 router.put(
   '/:id/with-image',
-  authenticateJWT,
+  requireAuth,
   uploadSingle('image'),
   handleUploadError,
   (req: Request, res: Response) => {

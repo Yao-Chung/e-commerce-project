@@ -1,5 +1,5 @@
 import multer from 'multer'
-import { Request, Response, NextFunction } from 'express'
+import { Request, Response, NextFunction, RequestHandler } from 'express'
 import { UploadedFile } from '../types/upload.types'
 
 // Configure multer for memory storage (we'll upload to Cloudinary)
@@ -41,6 +41,16 @@ const upload = multer({
 })
 
 // Middleware for single image upload
+export const uploadMiddleware = {
+  single: (fieldName: string = 'image'): RequestHandler =>
+    upload.single(fieldName),
+  array: (
+    fieldName: string = 'images',
+    maxCount: number = 10
+  ): RequestHandler => upload.array(fieldName, maxCount),
+  fields: (fields: multer.Field[]): RequestHandler => upload.fields(fields),
+} as const
+
 export const uploadSingle = (
   fieldName: string = 'image'
 ): ReturnType<typeof upload.single> => {

@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express'
 import { uploadController } from '../controllers/upload.controller'
-import { authenticateJWT, requireAdmin } from '../middleware/auth.middleware'
+import { requireAuth, requireAdmin } from '../middleware/auth.middleware'
 import { AuthenticatedRequest } from '../types/auth.types'
 import {
   uploadSingle,
@@ -15,7 +15,7 @@ const router: Router = Router()
 // Public upload endpoints (authenticated users only)
 router.post(
   '/single',
-  authenticateJWT,
+  requireAuth,
   uploadSingle('image'),
   handleUploadError,
   requireSingleFile,
@@ -26,7 +26,7 @@ router.post(
 
 router.post(
   '/multiple',
-  authenticateJWT,
+  requireAuth,
   uploadMultiple('images', 10),
   handleUploadError,
   requireFiles,
@@ -36,7 +36,7 @@ router.post(
 )
 
 // Admin-only endpoints for image management
-router.delete('/delete', authenticateJWT, (req: Request, res: Response) => {
+router.delete('/delete', requireAuth, (req: Request, res: Response) => {
   requireAdmin(req as AuthenticatedRequest, res, () => {
     uploadController.deleteImage(req as AuthenticatedRequest, res)
   })
@@ -44,7 +44,7 @@ router.delete('/delete', authenticateJWT, (req: Request, res: Response) => {
 
 router.delete(
   '/delete-multiple',
-  authenticateJWT,
+  requireAuth,
   (req: Request, res: Response) => {
     requireAdmin(req as AuthenticatedRequest, res, () => {
       uploadController.deleteMultiple(req as AuthenticatedRequest, res)
@@ -53,17 +53,13 @@ router.delete(
 )
 
 // Image information endpoints (authenticated users)
-router.get(
-  '/details/:publicId',
-  authenticateJWT,
-  (req: Request, res: Response) => {
-    uploadController.getImageDetails(req as AuthenticatedRequest, res)
-  }
-)
+router.get('/details/:publicId', requireAuth, (req: Request, res: Response) => {
+  uploadController.getImageDetails(req as AuthenticatedRequest, res)
+})
 
 router.post(
   '/transform/:publicId',
-  authenticateJWT,
+  requireAuth,
   (req: Request, res: Response) => {
     uploadController.generateTransformationUrl(req as AuthenticatedRequest, res)
   }

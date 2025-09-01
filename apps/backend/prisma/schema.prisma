@@ -22,11 +22,19 @@ model User {
   // OAuth fields
   googleId String? @unique
 
+  // Profile fields
+  phone       String?
+  avatar      String?
+  dateOfBirth DateTime?
+  gender      Gender?
+
   // Relations
-  orders    Order[]
-  cart      CartItem[]
-  addresses Address[]
-  sessions  Session[]
+  orders       Order[]
+  cart         CartItem[]
+  addresses    Address[]
+  sessions     Session[]
+  wishlist     WishlistItem[]
+  preferences  UserPreferences?
 
   @@map("users")
 }
@@ -43,8 +51,9 @@ model Product {
   updatedAt   DateTime @updatedAt
 
   // Relations
-  cartItems CartItem[]
-  orderItems OrderItem[]
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+  wishlistItems WishlistItem[]
 
   @@map("products")
 }
@@ -63,6 +72,20 @@ model CartItem {
 
   @@unique([userId, productId])
   @@map("cart_items")
+}
+
+model WishlistItem {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  // Relations
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+
+  @@unique([userId, productId])
+  @@map("wishlist_items")
 }
 
 model Order {
@@ -122,6 +145,7 @@ model Address {
   zipCode     String
   country     String
   isDefault   Boolean  @default(false)
+  addressType AddressType @default(SHIPPING)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -130,6 +154,25 @@ model Address {
   userId String
 
   @@map("addresses")
+}
+
+model UserPreferences {
+  id                    String   @id @default(uuid())
+  emailNotifications    Boolean  @default(true)
+  marketingEmails       Boolean  @default(true)
+  orderNotifications    Boolean  @default(true)
+  language             String   @default("en")
+  currency             String   @default("USD")
+  timezone             String   @default("UTC")
+  theme                String   @default("light")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  // Relations
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
+
+  @@map("user_preferences")
 }
 
 model Session {
@@ -149,6 +192,19 @@ model Session {
 enum Role {
   USER
   ADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum AddressType {
+  SHIPPING
+  BILLING
+  BOTH
 }
 
 enum OrderStatus {

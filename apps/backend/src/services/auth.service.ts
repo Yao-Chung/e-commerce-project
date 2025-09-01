@@ -62,6 +62,10 @@ export class AuthService {
         createdAt: true,
         updatedAt: true,
         googleId: true,
+        phone: true,
+        avatar: true,
+        dateOfBirth: true,
+        gender: true,
       },
     })
 
@@ -87,6 +91,10 @@ export class AuthService {
         createdAt: true,
         updatedAt: true,
         googleId: true,
+        phone: true,
+        avatar: true,
+        dateOfBirth: true,
+        gender: true,
       },
     })
   }

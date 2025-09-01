@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { authController } from '../controllers/auth.controller'
-import { authenticateJWT } from '../middleware/auth.middleware'
+import { requireAuth } from '../middleware/auth.middleware'
 import { AuthenticatedRequest } from '../types/auth.types'
 import googleAuthRoutes from './google-auth.routes'
 
@@ -16,13 +16,13 @@ router.post('/login', authController.login.bind(authController))
 router.use('/', googleAuthRoutes)
 
 // Protected routes
-router.get('/profile', authenticateJWT, (req, res) =>
+router.get('/profile', requireAuth, (req, res) =>
   authController.getProfile(req as AuthenticatedRequest, res)
 )
-router.post('/logout', authenticateJWT, (req, res) =>
+router.post('/logout', requireAuth, (req, res) =>
   authController.logout(req as AuthenticatedRequest, res)
 )
-router.get('/verify', authenticateJWT, (req, res) =>
+router.get('/verify', requireAuth, (req, res) =>
   authController.verifyToken(req as AuthenticatedRequest, res)
 )
 

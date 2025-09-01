@@ -1085,6 +1085,882 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  # User Profile Management Endpoints
+  /api/users/profile:
+    get:
+      tags:
+        - Users
+      summary: Get user profile
+      description: Retrieve the current user's profile information
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Profile retrieved successfully'
+                  data:
+                    $ref: '#/components/schemas/UserProfile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      tags:
+        - Users
+      summary: Update user profile
+      description: Update the current user's profile information
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Profile updated successfully'
+                  data:
+                    $ref: '#/components/schemas/UserProfile'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/users/avatar:
+    put:
+      tags:
+        - Users
+      summary: Update user avatar URL
+      description: Update the current user's avatar with a URL
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - avatar
+              properties:
+                avatar:
+                  type: string
+                  format: uri
+                  example: 'https://example.com/avatar.jpg'
+      responses:
+        '200':
+          description: Avatar updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Avatar updated successfully'
+                  data:
+                    $ref: '#/components/schemas/UserProfile'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/users/avatar/upload:
+    post:
+      tags:
+        - Users
+      summary: Upload user avatar
+      description: Upload and update the current user's avatar image
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+                  description: Avatar image file
+      responses:
+        '200':
+          description: Avatar uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Avatar uploaded successfully'
+                  data:
+                    type: object
+                    properties:
+                      profile:
+                        $ref: '#/components/schemas/UserProfile'
+                      upload:
+                        $ref: '#/components/schemas/UploadResult'
+        '400':
+          description: No image file provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/users/account:
+    delete:
+      tags:
+        - Users
+      summary: Delete user account
+      description: Permanently delete the current user's account
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+                - confirmPassword
+              properties:
+                password:
+                  type: string
+                  example: 'password123'
+                confirmPassword:
+                  type: string
+                  example: 'password123'
+      responses:
+        '200':
+          description: Account deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Account deleted successfully'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/users/profile/completion:
+    get:
+      tags:
+        - Users
+      summary: Get profile completion details
+      description: Get detailed information about profile completion status
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Profile completion details retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Profile completion details retrieved successfully'
+                  data:
+                    $ref: '#/components/schemas/ProfileCompletion'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # Address Management Endpoints
+  /api/addresses:
+    get:
+      tags:
+        - Addresses
+      summary: Get user addresses
+      description: Retrieve all addresses for the current user
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Addresses retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Addresses retrieved successfully'
+                  data:
+                    $ref: '#/components/schemas/AddressList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags:
+        - Addresses
+      summary: Create new address
+      description: Create a new address for the current user
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAddressRequest'
+      responses:
+        '201':
+          description: Address created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Address created successfully'
+                  data:
+                    $ref: '#/components/schemas/Address'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/addresses/{id}:
+    get:
+      tags:
+        - Addresses
+      summary: Get address by ID
+      description: Retrieve a specific address by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Address ID
+      responses:
+        '200':
+          description: Address retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Address retrieved successfully'
+                  data:
+                    $ref: '#/components/schemas/Address'
+        '404':
+          description: Address not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      tags:
+        - Addresses
+      summary: Update address
+      description: Update an existing address
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Address ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAddressRequest'
+      responses:
+        '200':
+          description: Address updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Address updated successfully'
+                  data:
+                    $ref: '#/components/schemas/Address'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Address not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      tags:
+        - Addresses
+      summary: Delete address
+      description: Delete an existing address
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Address ID
+      responses:
+        '200':
+          description: Address deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Address deleted successfully'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Address not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/addresses/{id}/default:
+    put:
+      tags:
+        - Addresses
+      summary: Set address as default
+      description: Set an address as the default address for the user
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Address ID
+      responses:
+        '200':
+          description: Default address updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Default address updated successfully'
+                  data:
+                    $ref: '#/components/schemas/Address'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Address not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Wishlist Management Endpoints
+  /api/wishlist:
+    get:
+      tags:
+        - Wishlist
+      summary: Get user wishlist
+      description: Retrieve the current user's wishlist
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Wishlist retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Wishlist retrieved successfully'
+                  data:
+                    $ref: '#/components/schemas/Wishlist'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags:
+        - Wishlist
+      summary: Add item to wishlist
+      description: Add a product to the current user's wishlist
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - productId
+              properties:
+                productId:
+                  type: string
+                  format: uuid
+                  example: '123e4567-e89b-12d3-a456-426614174000'
+      responses:
+        '201':
+          description: Item added to wishlist successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Item added to wishlist successfully'
+                  data:
+                    $ref: '#/components/schemas/WishlistItem'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Product already in wishlist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      tags:
+        - Wishlist
+      summary: Clear wishlist
+      description: Remove all items from the current user's wishlist
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Wishlist cleared successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Wishlist cleared successfully'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/wishlist/{productId}:
+    delete:
+      tags:
+        - Wishlist
+      summary: Remove item from wishlist
+      description: Remove a specific product from the current user's wishlist
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Product ID
+      responses:
+        '200':
+          description: Item removed from wishlist successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Item removed from wishlist successfully'
+        '400':
+          description: Invalid product ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Product not found in wishlist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/wishlist/{productId}/move-to-cart:
+    post:
+      tags:
+        - Wishlist
+      summary: Move item to cart
+      description: Move a product from wishlist to shopping cart
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Product ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                productId:
+                  type: string
+                  format: uuid
+                  example: '123e4567-e89b-12d3-a456-426614174000'
+                quantity:
+                  type: integer
+                  minimum: 1
+                  example: 1
+      responses:
+        '200':
+          description: Item moved to cart successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Item moved to cart successfully'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Product not found in wishlist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/wishlist/{productId}/status:
+    get:
+      tags:
+        - Wishlist
+      summary: Check wishlist status
+      description: Check if a product is in the current user's wishlist
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Product ID
+      responses:
+        '200':
+          description: Wishlist status checked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Wishlist status checked successfully'
+                  data:
+                    type: object
+                    properties:
+                      productId:
+                        type: string
+                        format: uuid
+                      isInWishlist:
+                        type: boolean
+        '400':
+          description: Invalid product ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/wishlist/count:
+    get:
+      tags:
+        - Wishlist
+      summary: Get wishlist count
+      description: Get the number of items in the current user's wishlist
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Wishlist count retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Wishlist count retrieved successfully'
+                  data:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                        example: 5
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # User Preferences Endpoints
+  /api/preferences:
+    get:
+      tags:
+        - Preferences
+      summary: Get user preferences
+      description: Retrieve the current user's preferences
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Preferences retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Preferences retrieved successfully'
+                  data:
+                    $ref: '#/components/schemas/UserPreferences'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      tags:
+        - Preferences
+      summary: Update user preferences
+      description: Update the current user's preferences
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePreferencesRequest'
+      responses:
+        '200':
+          description: Preferences updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Preferences updated successfully'
+                  data:
+                    $ref: '#/components/schemas/UserPreferences'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/preferences/notifications:
+    get:
+      tags:
+        - Preferences
+      summary: Get notification settings
+      description: Retrieve the current user's notification settings
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Notification settings retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Notification settings retrieved successfully'
+                  data:
+                    $ref: '#/components/schemas/NotificationSettings'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      tags:
+        - Preferences
+      summary: Update notification settings
+      description: Update the current user's notification settings
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationSettings'
+      responses:
+        '200':
+          description: Notification settings updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Notification settings updated successfully'
+                  data:
+                    $ref: '#/components/schemas/UserPreferences'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/preferences/display:
+    get:
+      tags:
+        - Preferences
+      summary: Get display settings
+      description: Retrieve the current user's display settings
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Display settings retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Display settings retrieved successfully'
+                  data:
+                    $ref: '#/components/schemas/DisplaySettings'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      tags:
+        - Preferences
+      summary: Update display settings
+      description: Update the current user's display settings
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DisplaySettings'
+      responses:
+        '200':
+          description: Display settings updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Display settings updated successfully'
+                  data:
+                    $ref: '#/components/schemas/UserPreferences'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/preferences/reset:
+    post:
+      tags:
+        - Preferences
+      summary: Reset preferences to default
+      description: Reset the current user's preferences to default values
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Preferences reset to default successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Preferences reset to default successfully'
+                  data:
+                    $ref: '#/components/schemas/UserPreferences'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
 components:
   securitySchemes:
     BearerAuth:
@@ -1357,6 +2233,372 @@ components:
               message:
                 type: string
 
+    # User Profile Schemas
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: '123e4567-e89b-12d3-a456-426614174000'
+        email:
+          type: string
+          format: email
+          example: 'john@example.com'
+        name:
+          type: string
+          example: 'John Doe'
+        role:
+          type: string
+          enum: [USER, ADMIN]
+          example: 'USER'
+        phone:
+          type: string
+          nullable: true
+          example: '+1234567890'
+        avatar:
+          type: string
+          nullable: true
+          example: 'https://example.com/avatar.jpg'
+        dateOfBirth:
+          type: string
+          format: date-time
+          nullable: true
+          example: '1990-01-01T00:00:00.000Z'
+        gender:
+          type: string
+          enum: [MALE, FEMALE, OTHER, PREFER_NOT_TO_SAY]
+          nullable: true
+          example: 'MALE'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        profileCompletion:
+          type: integer
+          minimum: 0
+          maximum: 100
+          example: 80
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          example: 'John Doe'
+        phone:
+          type: string
+          nullable: true
+          example: '+1234567890'
+        dateOfBirth:
+          type: string
+          format: date
+          nullable: true
+          example: '1990-01-01'
+        gender:
+          type: string
+          enum: [MALE, FEMALE, OTHER, PREFER_NOT_TO_SAY]
+          nullable: true
+          example: 'MALE'
+
+    ProfileCompletion:
+      type: object
+      properties:
+        totalFields:
+          type: integer
+          example: 5
+        completedFields:
+          type: integer
+          example: 4
+        percentage:
+          type: integer
+          minimum: 0
+          maximum: 100
+          example: 80
+        missingFields:
+          type: array
+          items:
+            type: string
+          example: ['dateOfBirth']
+
+    # Address Schemas
+    Address:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: '123e4567-e89b-12d3-a456-426614174000'
+        name:
+          type: string
+          example: 'Home Address'
+        street:
+          type: string
+          example: '123 Main St'
+        city:
+          type: string
+          example: 'New York'
+        state:
+          type: string
+          example: 'NY'
+        zipCode:
+          type: string
+          example: '10001'
+        country:
+          type: string
+          example: 'USA'
+        isDefault:
+          type: boolean
+          example: true
+        addressType:
+          type: string
+          enum: [SHIPPING, BILLING, BOTH]
+          example: 'SHIPPING'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    AddressList:
+      type: object
+      properties:
+        addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/Address'
+        defaultAddress:
+          $ref: '#/components/schemas/Address'
+          nullable: true
+        totalCount:
+          type: integer
+          example: 3
+
+    CreateAddressRequest:
+      type: object
+      required:
+        - name
+        - street
+        - city
+        - state
+        - zipCode
+        - country
+      properties:
+        name:
+          type: string
+          example: 'Home Address'
+        street:
+          type: string
+          example: '123 Main St'
+        city:
+          type: string
+          example: 'New York'
+        state:
+          type: string
+          example: 'NY'
+        zipCode:
+          type: string
+          example: '10001'
+        country:
+          type: string
+          example: 'USA'
+        isDefault:
+          type: boolean
+          example: false
+        addressType:
+          type: string
+          enum: [SHIPPING, BILLING, BOTH]
+          example: 'SHIPPING'
+
+    UpdateAddressRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: 'Home Address'
+        street:
+          type: string
+          example: '123 Main St'
+        city:
+          type: string
+          example: 'New York'
+        state:
+          type: string
+          example: 'NY'
+        zipCode:
+          type: string
+          example: '10001'
+        country:
+          type: string
+          example: 'USA'
+        isDefault:
+          type: boolean
+          example: false
+        addressType:
+          type: string
+          enum: [SHIPPING, BILLING, BOTH]
+          example: 'SHIPPING'
+
+    # Wishlist Schemas
+    Wishlist:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/WishlistItem'
+        totalCount:
+          type: integer
+          example: 5
+        totalValue:
+          type: number
+          format: float
+          example: 299.99
+
+    WishlistItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: '123e4567-e89b-12d3-a456-426614174000'
+        createdAt:
+          type: string
+          format: date-time
+        product:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              example: '123e4567-e89b-12d3-a456-426614174000'
+            name:
+              type: string
+              example: 'iPhone 15'
+            description:
+              type: string
+              example: 'Latest iPhone model'
+            price:
+              type: number
+              format: float
+              example: 999.99
+            category:
+              type: string
+              example: 'Electronics'
+            imageUrl:
+              type: string
+              nullable: true
+              example: 'https://example.com/iphone15.jpg'
+            stock:
+              type: integer
+              example: 10
+
+    # User Preferences Schemas
+    UserPreferences:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: '123e4567-e89b-12d3-a456-426614174000'
+        emailNotifications:
+          type: boolean
+          example: true
+        marketingEmails:
+          type: boolean
+          example: true
+        orderNotifications:
+          type: boolean
+          example: true
+        language:
+          type: string
+          example: 'en'
+        currency:
+          type: string
+          example: 'USD'
+        timezone:
+          type: string
+          example: 'UTC'
+        theme:
+          type: string
+          enum: [light, dark, auto]
+          example: 'light'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    UpdatePreferencesRequest:
+      type: object
+      properties:
+        emailNotifications:
+          type: boolean
+          example: true
+        marketingEmails:
+          type: boolean
+          example: true
+        orderNotifications:
+          type: boolean
+          example: true
+        language:
+          type: string
+          example: 'en'
+        currency:
+          type: string
+          example: 'USD'
+        timezone:
+          type: string
+          example: 'UTC'
+        theme:
+          type: string
+          enum: [light, dark, auto]
+          example: 'light'
+
+    NotificationSettings:
+      type: object
+      required:
+        - emailNotifications
+        - marketingEmails
+        - orderNotifications
+      properties:
+        emailNotifications:
+          type: boolean
+          example: true
+        marketingEmails:
+          type: boolean
+          example: true
+        orderNotifications:
+          type: boolean
+          example: true
+
+    DisplaySettings:
+      type: object
+      required:
+        - language
+        - currency
+        - timezone
+        - theme
+      properties:
+        language:
+          type: string
+          example: 'en'
+        currency:
+          type: string
+          example: 'USD'
+        timezone:
+          type: string
+          example: 'UTC'
+        theme:
+          type: string
+          enum: [light, dark, auto]
+          example: 'light'
+
     # Upload Schemas
     UploadResult:
       type: object
@@ -1437,3 +2679,11 @@ tags:
     description: Product catalog management
   - name: Upload
     description: Image upload and management
+  - name: Users
+    description: User profile management
+  - name: Addresses
+    description: Address management
+  - name: Wishlist
+    description: Wishlist functionality
+  - name: Preferences
+    description: User preferences and settings
