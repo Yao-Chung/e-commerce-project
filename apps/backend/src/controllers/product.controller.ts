@@ -15,6 +15,27 @@ import {
   ProductUpdateWithImageRequest,
 } from '../types/upload.types'
 
+// Type guard functions
+function isValidProductId(params: unknown): params is { id: string } {
+  return (
+    typeof params === 'object' &&
+    params !== null &&
+    'id' in params &&
+    typeof (params as { id: unknown }).id === 'string' &&
+    (params as { id: string }).id.length > 0
+  )
+}
+
+function isValidStockUpdate(body: unknown): body is { stock: number } {
+  return (
+    typeof body === 'object' &&
+    body !== null &&
+    'stock' in body &&
+    typeof (body as { stock: unknown }).stock === 'number' &&
+    (body as { stock: number }).stock >= 0
+  )
+}
+
 // Validation schemas
 const createProductSchema = z.object({
   name: z.string().min(1, 'Product name is required').max(255, 'Name too long'),
@@ -172,15 +193,15 @@ export class ProductController {
   // Get product by ID
   async getProductById(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params as { id: string }
-
-      if (!id || typeof id !== 'string') {
+      if (!isValidProductId(req.params)) {
         res.status(400).json({
           error: 'Bad request',
           message: 'Product ID is required',
         })
         return
       }
+
+      const { id } = req.params
 
       const product = await productService.getProductById(id)
 
@@ -208,15 +229,15 @@ export class ProductController {
   // Update product (Admin only)
   async updateProduct(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const { id } = req.params as { id: string }
-
-      if (!id || typeof id !== 'string') {
+      if (!isValidProductId(req.params)) {
         res.status(400).json({
           error: 'Bad request',
           message: 'Product ID is required',
         })
         return
       }
+
+      const { id } = req.params
 
       const validationResult = updateProductSchema.safeParse(req.body)
       if (!validationResult.success) {
@@ -262,15 +283,15 @@ export class ProductController {
   // Delete product (Admin only)
   async deleteProduct(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const { id } = req.params as { id: string }
-
-      if (!id || typeof id !== 'string') {
+      if (!isValidProductId(req.params)) {
         res.status(400).json({
           error: 'Bad request',
           message: 'Product ID is required',
         })
         return
       }
+
+      const { id } = req.params
 
       const deleted: boolean = await productService.deleteProduct(id)
 
@@ -362,10 +383,7 @@ export class ProductController {
   // Update product stock (Admin only)
   async updateStock(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const { id } = req.params as { id: string }
-      const { stock } = req.body as { stock: number }
-
-      if (!id || typeof id !== 'string') {
+      if (!isValidProductId(req.params)) {
         res.status(400).json({
           error: 'Bad request',
           message: 'Product ID is required',
@@ -373,21 +391,16 @@ export class ProductController {
         return
       }
 
-      if (typeof stock !== 'number') {
+      if (!isValidStockUpdate(req.body)) {
         res.status(400).json({
           error: 'Bad request',
-          message: 'Stock must be a number',
+          message: 'Stock must be a non-negative number',
         })
         return
       }
 
-      if (stock < 0) {
-        res.status(400).json({
-          error: 'Bad request',
-          message: 'Stock cannot be negative',
-        })
-        return
-      }
+      const { id } = req.params
+      const { stock } = req.body
 
       const product = await productService.updateStock(id, stock)
 

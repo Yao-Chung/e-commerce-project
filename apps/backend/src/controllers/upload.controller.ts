@@ -5,6 +5,24 @@ import { CloudinaryUploadType } from '../config/cloudinary.config'
 import { AuthenticatedRequest } from '../types/auth.types'
 import { UploadedFile, UploadResult } from '../types/upload.types'
 
+// Type guard function for uploaded files array
+function isUploadedFileArray(files: unknown): files is UploadedFile[] {
+  return (
+    Array.isArray(files) &&
+    files.length > 0 &&
+    files.every(
+      file =>
+        typeof file === 'object' &&
+        file !== null &&
+        'originalname' in file &&
+        'mimetype' in file &&
+        'buffer' in file &&
+        typeof (file as { originalname: unknown }).originalname === 'string' &&
+        typeof (file as { mimetype: unknown }).mimetype === 'string'
+    )
+  )
+}
+
 // Validation schemas
 const uploadTypeSchema = z.enum([
   'product_images',
@@ -92,15 +110,15 @@ export class UploadController {
     res: Response
   ): Promise<void> {
     try {
-      const files: UploadedFile[] = req.files as UploadedFile[]
-
-      if (!files || files.length === 0) {
+      if (!isUploadedFileArray(req.files)) {
         res.status(400).json({
           error: 'Bad Request',
-          message: 'No files uploaded',
+          message: 'No valid files uploaded',
         })
         return
       }
+
+      const files: UploadedFile[] = req.files
 
       // Validate upload type
       const uploadType: CloudinaryUploadType = uploadTypeSchema.parse(
