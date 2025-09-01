@@ -9,16 +9,16 @@ import {
 
 // Validation schemas
 const addToWishlistSchema = z.object({
-  productId: z.string().uuid('Invalid product ID'),
+  productId: z.uuid('Invalid product ID'),
 })
 
 const moveToCartSchema = z.object({
-  productId: z.string().uuid('Invalid product ID'),
+  productId: z.uuid('Invalid product ID'),
   quantity: z
     .number()
     .int()
     .positive('Quantity must be a positive integer')
-    .optional(),
+    .nullable(),
 })
 
 export class WishlistController {

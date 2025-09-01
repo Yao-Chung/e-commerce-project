@@ -6,13 +6,13 @@ export type AuthenticatedRequest = Request & {
 }
 
 export type UpdatePreferencesRequestBody = {
-  emailNotifications?: boolean
-  marketingEmails?: boolean
-  orderNotifications?: boolean
-  language?: string
-  currency?: string
-  timezone?: string
-  theme?: string
+  emailNotifications: boolean | null
+  marketingEmails: boolean | null
+  orderNotifications: boolean | null
+  language: string | null
+  currency: string | null
+  timezone: string | null
+  theme: string | null
 }
 
 export type PreferencesResponse = {

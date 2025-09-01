@@ -4,6 +4,7 @@ import {
   WishlistItemResponse,
   WishlistResponse,
   MoveToCartRequestBody,
+  WishlistItemWithProduct,
 } from '../types/wishlist.types'
 
 const prisma = new PrismaClient()
@@ -143,7 +144,8 @@ export class WishlistService {
     }
 
     // Check if product is in stock
-    if (product.stock < (data.quantity || 1)) {
+    const quantity: number = data.quantity ?? 1
+    if (product.stock < quantity) {
       throw new Error('Product is out of stock')
     }
 
@@ -167,7 +169,7 @@ export class WishlistService {
           },
         },
         data: {
-          quantity: existingCartItem.quantity + (data.quantity || 1),
+          quantity: existingCartItem.quantity + quantity,
         },
       })
     } else {
@@ -176,7 +178,7 @@ export class WishlistService {
         data: {
           userId,
           productId: data.productId,
-          quantity: data.quantity || 1,
+          quantity: quantity,
         },
       })
     }
@@ -223,7 +225,9 @@ export class WishlistService {
   }
 
   // Map database wishlist item to response format
-  private mapWishlistItemToResponse(wishlistItem: any): WishlistItemResponse {
+  private mapWishlistItemToResponse(
+    wishlistItem: WishlistItemWithProduct
+  ): WishlistItemResponse {
     return {
       id: wishlistItem.id,
       createdAt: wishlistItem.createdAt,

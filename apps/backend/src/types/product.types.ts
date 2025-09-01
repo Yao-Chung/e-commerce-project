@@ -7,11 +7,18 @@ export type ProductCreateRequest = {
   description: string
   price: number
   category: string
-  imageUrl: string | null | undefined
+  imageUrl: string | null
   stock: number
 }
 
-export type ProductUpdateRequest = Partial<ProductCreateRequest>
+export type ProductUpdateRequest = {
+  name: string | null
+  description: string | null
+  price: number | null
+  category: string | null
+  imageUrl: string | null
+  stock: number | null
+}
 
 export type ProductResponse = Product
 
@@ -34,15 +41,15 @@ export type ProductFilters = {
 }
 
 export type ProductQueryParams = {
-  page: string | null | undefined
-  limit: string | null | undefined
-  category: string | null | undefined
-  minPrice: string | null | undefined
-  maxPrice: string | null | undefined
-  search: string | null | undefined
-  inStock: string | null | undefined
-  sortBy: string | null | undefined
-  sortOrder: string | null | undefined
+  page: string | null
+  limit: string | null
+  category: string | null
+  minPrice: string | null
+  maxPrice: string | null
+  search: string | null
+  inStock: string | null
+  sortBy: string | null
+  sortOrder: string | null
 }
 
 export type CategoryResponse = {
@@ -58,14 +65,14 @@ export type CategoryListResponse = CategoryResponse[]
 export type GetAllProductsRequest = Request<
   Record<string, never>, // No route params
   | { message: string; data: ProductListResponse }
-  | { error: string; details?: unknown }, // Response body
+  | { error: string; details: unknown | null }, // Response body
   Record<string, never>, // No request body
   ProductQueryParams // Query params
 >
 
 export type GetAllProductsResponse = Response<
   | { message: string; data: ProductListResponse }
-  | { error: string; details?: unknown }
+  | { error: string; details: unknown | null }
 >
 
 // GET /products/:id - Get product by ID
@@ -87,7 +94,7 @@ export type CreateProductRequest = AuthenticatedRequest
 
 export type CreateProductResponse = Response<
   | { message: string; data: { product: Product } }
-  | { error: string; details?: unknown }
+  | { error: string; details: unknown | null }
 >
 
 // PUT /products/:id - Update product (Admin only)
@@ -95,7 +102,7 @@ export type UpdateProductRequest = AuthenticatedRequest
 
 export type UpdateProductResponse = Response<
   | { message: string; data: { product: Product } }
-  | { error: string; message?: string; details?: unknown }
+  | { error: string; message: string | null; details: unknown | null }
 >
 
 // DELETE /products/:id - Delete product (Admin only)
@@ -125,7 +132,7 @@ export type GetProductsByCategoryRequest = Request<
   | { message: string; data: ProductListResponse }
   | { error: string; message: string }, // Response body
   Record<string, never>, // No request body
-  { page?: string; limit?: string } // Query params
+  { page: string | null; limit: string | null } // Query params
 >
 
 export type GetProductsByCategoryResponse = Response<
@@ -139,7 +146,7 @@ export type SearchProductsRequest = Request<
   | { message: string; data: ProductListResponse }
   | { error: string; message: string }, // Response body
   Record<string, never>, // No request body
-  { q: string; page?: string; limit?: string } // Query params
+  { q: string; page: string | null; limit: string | null } // Query params
 >
 
 export type SearchProductsResponse = Response<

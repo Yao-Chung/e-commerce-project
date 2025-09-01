@@ -227,7 +227,14 @@ export class ProductController {
         return
       }
 
-      const updateData: ProductUpdateRequest = validationResult.data
+      const updateData: ProductUpdateRequest = {
+        name: validationResult.data.name || null,
+        description: validationResult.data.description || null,
+        price: validationResult.data.price || null,
+        category: validationResult.data.category || null,
+        imageUrl: validationResult.data.imageUrl || null,
+        stock: validationResult.data.stock || null,
+      }
 
       const product = await productService.updateProduct(id, updateData)
 
@@ -485,7 +492,14 @@ export class ProductController {
         return
       }
 
-      let updateData: ProductUpdateRequest = validationResult.data
+      let updateData: ProductUpdateRequest = {
+        name: validationResult.data.name || null,
+        description: validationResult.data.description || null,
+        price: validationResult.data.price || null,
+        category: validationResult.data.category || null,
+        imageUrl: validationResult.data.imageUrl || null,
+        stock: validationResult.data.stock || null,
+      }
 
       // Upload new image to Cloudinary if provided
       if (req.file) {

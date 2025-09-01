@@ -116,12 +116,12 @@ export class ProductService {
       return await prisma.product.update({
         where: { id },
         data: {
-          ...(data.name && { name: data.name }),
-          ...(data.description && { description: data.description }),
-          ...(data.price && { price: data.price }),
-          ...(data.category && { category: data.category }),
-          ...(data.imageUrl !== undefined && { imageUrl: data.imageUrl }),
-          ...(data.stock !== undefined && { stock: data.stock }),
+          ...(data.name !== null && { name: data.name }),
+          ...(data.description !== null && { description: data.description }),
+          ...(data.price !== null && { price: data.price }),
+          ...(data.category !== null && { category: data.category }),
+          ...(data.imageUrl !== null && { imageUrl: data.imageUrl }),
+          ...(data.stock !== null && { stock: data.stock }),
         },
       })
     } catch (error: unknown) {

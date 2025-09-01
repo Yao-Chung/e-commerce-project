@@ -11,13 +11,10 @@ import {
 
 // Validation schemas
 const updateProfileSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters').optional(),
-  phone: z.string().optional().nullable(),
-  dateOfBirth: z.string().optional().nullable(),
-  gender: z
-    .enum(['MALE', 'FEMALE', 'OTHER', 'PREFER_NOT_TO_SAY'])
-    .optional()
-    .nullable(),
+  name: z.string().min(2, 'Name must be at least 2 characters').nullable(),
+  phone: z.string().nullable(),
+  dateOfBirth: z.string().nullable(),
+  gender: z.enum(['MALE', 'FEMALE', 'OTHER', 'PREFER_NOT_TO_SAY']).nullable(),
 })
 
 const updateAvatarSchema = z.object({

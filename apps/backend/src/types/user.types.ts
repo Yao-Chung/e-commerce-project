@@ -6,10 +6,10 @@ export type AuthenticatedRequest = Request & {
 }
 
 export type UpdateProfileRequestBody = {
-  name?: string
-  phone?: string | null
-  dateOfBirth?: string | null
-  gender?: Gender | null
+  name: string | null
+  phone: string | null
+  dateOfBirth: string | null
+  gender: Gender | null
 }
 
 export type UpdateAvatarRequestBody = {

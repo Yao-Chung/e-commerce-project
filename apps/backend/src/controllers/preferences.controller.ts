@@ -10,19 +10,19 @@ import {
 
 // Validation schemas
 const updatePreferencesSchema = z.object({
-  emailNotifications: z.boolean().optional(),
-  marketingEmails: z.boolean().optional(),
-  orderNotifications: z.boolean().optional(),
+  emailNotifications: z.boolean().nullable(),
+  marketingEmails: z.boolean().nullable(),
+  orderNotifications: z.boolean().nullable(),
   language: z
     .string()
     .min(2, 'Language must be at least 2 characters')
-    .optional(),
+    .nullable(),
   currency: z
     .string()
     .min(3, 'Currency must be at least 3 characters')
-    .optional(),
-  timezone: z.string().min(1, 'Timezone is required').optional(),
-  theme: z.enum(['light', 'dark', 'auto']).optional(),
+    .nullable(),
+  timezone: z.string().min(1, 'Timezone is required').nullable(),
+  theme: z.enum(['light', 'dark', 'auto']).nullable(),
 })
 
 const notificationSettingsSchema = z.object({

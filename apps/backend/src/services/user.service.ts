@@ -51,18 +51,18 @@ export class UserService {
       gender: Gender | null
     }> = {}
 
-    if (data.name !== undefined) {
+    if (data.name !== null) {
       updateData.name = data.name
     }
-    if (data.phone !== undefined) {
+    if (data.phone !== null) {
       updateData.phone = data.phone
     }
-    if (data.dateOfBirth !== undefined) {
+    if (data.dateOfBirth !== null) {
       updateData.dateOfBirth = data.dateOfBirth
         ? new Date(data.dateOfBirth)
         : null
     }
-    if (data.gender !== undefined) {
+    if (data.gender !== null) {
       updateData.gender = data.gender
     }
 

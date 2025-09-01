@@ -28,16 +28,16 @@ export type CloudinaryUploadType =
 
 // Request types for upload endpoints
 export type UploadSingleRequest = AuthenticatedRequest & {
-  file?: UploadedFile
+  file: UploadedFile | null
   body: {
-    uploadType?: CloudinaryUploadType
+    uploadType: CloudinaryUploadType | null
   }
 }
 
 export type UploadMultipleRequest = AuthenticatedRequest & {
-  files?: UploadedFile[]
+  files: UploadedFile[] | null
   body: {
-    uploadType?: CloudinaryUploadType
+    uploadType: CloudinaryUploadType | null
   }
 }
 
@@ -64,7 +64,7 @@ export type GenerateTransformationRequest = AuthenticatedRequest & {
     publicId: string
   }
   body: {
-    transformations?: Record<string, unknown>
+    transformations: Record<string, unknown> | null
   }
 }
 
@@ -123,7 +123,7 @@ export type ProductCreateWithImageRequest = AuthenticatedRequest & {
     category: string
     stock: number
   }
-  file?: UploadedFile
+  file: UploadedFile | null
 }
 
 export type ProductUpdateWithImageRequest = AuthenticatedRequest & {
@@ -131,11 +131,11 @@ export type ProductUpdateWithImageRequest = AuthenticatedRequest & {
     id: string
   }
   body: {
-    name?: string
-    description?: string
-    price?: number
-    category?: string
-    stock?: number
+    name: string | null
+    description: string | null
+    price: number | null
+    category: string | null
+    stock: number | null
   }
-  file?: UploadedFile
+  file: UploadedFile | null
 }

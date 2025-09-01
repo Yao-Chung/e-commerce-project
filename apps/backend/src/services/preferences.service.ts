@@ -42,9 +42,31 @@ export class PreferencesService {
     // Validate preference values
     this.validatePreferences(data)
 
+    // Filter out null values for update
+    const updateData: Partial<{
+      emailNotifications: boolean
+      marketingEmails: boolean
+      orderNotifications: boolean
+      language: string
+      currency: string
+      timezone: string
+      theme: string
+    }> = {}
+
+    if (data.emailNotifications !== null)
+      updateData.emailNotifications = data.emailNotifications
+    if (data.marketingEmails !== null)
+      updateData.marketingEmails = data.marketingEmails
+    if (data.orderNotifications !== null)
+      updateData.orderNotifications = data.orderNotifications
+    if (data.language !== null) updateData.language = data.language
+    if (data.currency !== null) updateData.currency = data.currency
+    if (data.timezone !== null) updateData.timezone = data.timezone
+    if (data.theme !== null) updateData.theme = data.theme
+
     const preferences = await prisma.userPreferences.upsert({
       where: { userId },
-      update: data,
+      update: updateData,
       create: {
         userId,
         emailNotifications: data.emailNotifications ?? true,
@@ -172,22 +194,22 @@ export class PreferencesService {
   // Validate preferences data
   private validatePreferences(data: UpdatePreferencesRequestBody): void {
     // Validate language
-    if (data.language && !this.isValidLanguage(data.language)) {
+    if (data.language !== null && !this.isValidLanguage(data.language)) {
       throw new Error('Invalid language code')
     }
 
     // Validate currency
-    if (data.currency && !this.isValidCurrency(data.currency)) {
+    if (data.currency !== null && !this.isValidCurrency(data.currency)) {
       throw new Error('Invalid currency code')
     }
 
     // Validate timezone
-    if (data.timezone && !this.isValidTimezone(data.timezone)) {
+    if (data.timezone !== null && !this.isValidTimezone(data.timezone)) {
       throw new Error('Invalid timezone')
     }
 
     // Validate theme
-    if (data.theme && !this.isValidTheme(data.theme)) {
+    if (data.theme !== null && !this.isValidTheme(data.theme)) {
       throw new Error('Invalid theme')
     }
   }
