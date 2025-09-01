@@ -1,8 +1,10 @@
-import { Router } from 'express'
+import { Router, Request, Response } from 'express'
 import { userController } from '../controllers/user.controller'
-import { requireAuth } from '../middleware/auth.middleware'
+import {
+  requireAuth,
+  getAuthenticatedRequest,
+} from '../middleware/auth.middleware'
 import { uploadMiddleware } from '../middleware/upload.middleware'
-import { AuthenticatedRequest } from '../types/user.types'
 
 const router: Router = Router()
 
@@ -10,23 +12,56 @@ const router: Router = Router()
 router.use(requireAuth)
 
 // Profile management routes
-router.get('/profile', (req, res) =>
-  userController.getProfile(req as AuthenticatedRequest, res)
+router.get('/profile', (req: Request, res: Response) => {
+  const authReq = getAuthenticatedRequest(req)
+  if (!authReq) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+  return userController.getProfile(authReq, res)
+})
+
+router.put('/profile', (req: Request, res: Response) => {
+  const authReq = getAuthenticatedRequest(req)
+  if (!authReq) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+  return userController.updateProfile(authReq, res)
+})
+
+router.put('/avatar', (req: Request, res: Response) => {
+  const authReq = getAuthenticatedRequest(req)
+  if (!authReq) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+  return userController.updateAvatar(authReq, res)
+})
+
+router.post(
+  '/avatar/upload',
+  uploadMiddleware.single('avatar'),
+  (req: Request, res: Response) => {
+    const authReq = getAuthenticatedRequest(req)
+    if (!authReq) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
+    return userController.uploadAvatar(authReq, res)
+  }
 )
-router.put('/profile', (req, res) =>
-  userController.updateProfile(req as AuthenticatedRequest, res)
-)
-router.put('/avatar', (req, res) =>
-  userController.updateAvatar(req as AuthenticatedRequest, res)
-)
-router.post('/avatar/upload', uploadMiddleware.single('avatar'), (req, res) =>
-  userController.uploadAvatar(req as AuthenticatedRequest, res)
-)
-router.delete('/account', (req, res) =>
-  userController.deleteAccount(req as AuthenticatedRequest, res)
-)
-router.get('/profile/completion', (req, res) =>
-  userController.getProfileCompletion(req as AuthenticatedRequest, res)
-)
+
+router.delete('/account', (req: Request, res: Response) => {
+  const authReq = getAuthenticatedRequest(req)
+  if (!authReq) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+  return userController.deleteAccount(authReq, res)
+})
+
+router.get('/profile/completion', (req: Request, res: Response) => {
+  const authReq = getAuthenticatedRequest(req)
+  if (!authReq) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+  return userController.getProfileCompletion(authReq, res)
+})
 
 export default router

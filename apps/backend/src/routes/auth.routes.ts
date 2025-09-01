@@ -1,7 +1,9 @@
-import { Router } from 'express'
+import { Router, Request, Response } from 'express'
 import { authController } from '../controllers/auth.controller'
-import { requireAuth } from '../middleware/auth.middleware'
-import { AuthenticatedRequest } from '../types/auth.types'
+import {
+  requireAuth,
+  getAuthenticatedRequest,
+} from '../middleware/auth.middleware'
 import googleAuthRoutes from './google-auth.routes'
 
 const router: Router = Router()
@@ -16,15 +18,29 @@ router.post('/login', authController.login.bind(authController))
 router.use('/', googleAuthRoutes)
 
 // Protected routes
-router.get('/profile', requireAuth, (req, res) =>
-  authController.getProfile(req as AuthenticatedRequest, res)
-)
-router.post('/logout', requireAuth, (req, res) =>
-  authController.logout(req as AuthenticatedRequest, res)
-)
-router.get('/verify', requireAuth, (req, res) =>
-  authController.verifyToken(req as AuthenticatedRequest, res)
-)
+router.get('/profile', requireAuth, (req: Request, res: Response) => {
+  const authReq = getAuthenticatedRequest(req)
+  if (!authReq) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+  return authController.getProfile(authReq, res)
+})
+
+router.post('/logout', requireAuth, (req: Request, res: Response) => {
+  const authReq = getAuthenticatedRequest(req)
+  if (!authReq) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+  return authController.logout(authReq, res)
+})
+
+router.get('/verify', requireAuth, (req: Request, res: Response) => {
+  const authReq = getAuthenticatedRequest(req)
+  if (!authReq) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+  return authController.verifyToken(authReq, res)
+})
 
 // Health check for auth routes
 router.get('/health', (_, res) => {

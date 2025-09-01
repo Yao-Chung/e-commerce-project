@@ -1,7 +1,10 @@
 import { Router, Request, Response } from 'express'
 import { productController } from '../controllers/product.controller'
-import { requireAuth, requireAdmin } from '../middleware/auth.middleware'
-import { AuthenticatedRequest } from '../types/auth.types'
+import {
+  requireAuth,
+  requireAdmin,
+  getAuthenticatedRequest,
+} from '../middleware/auth.middleware'
 import {
   ProductCreateWithImageRequest,
   ProductUpdateWithImageRequest,
@@ -65,26 +68,42 @@ router.get('/:id', productController.getProductById.bind(productController))
 
 // Admin-only routes (authentication + admin role required)
 router.post('/', requireAuth, (req: Request, res: Response) => {
-  requireAdmin(req as AuthenticatedRequest, res, () => {
-    productController.createProduct(req as AuthenticatedRequest, res)
+  const authReq = getAuthenticatedRequest(req)
+  if (!authReq) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+  return requireAdmin(authReq, res, () => {
+    return productController.createProduct(authReq, res)
   })
 })
 
 router.put('/:id', requireAuth, (req: Request, res: Response) => {
-  requireAdmin(req as AuthenticatedRequest, res, () => {
-    productController.updateProduct(req as AuthenticatedRequest, res)
+  const authReq = getAuthenticatedRequest(req)
+  if (!authReq) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+  return requireAdmin(authReq, res, () => {
+    return productController.updateProduct(authReq, res)
   })
 })
 
 router.delete('/:id', requireAuth, (req: Request, res: Response) => {
-  requireAdmin(req as AuthenticatedRequest, res, () => {
-    productController.deleteProduct(req as AuthenticatedRequest, res)
+  const authReq = getAuthenticatedRequest(req)
+  if (!authReq) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+  return requireAdmin(authReq, res, () => {
+    return productController.deleteProduct(authReq, res)
   })
 })
 
 router.patch('/:id/stock', requireAuth, (req: Request, res: Response) => {
-  requireAdmin(req as AuthenticatedRequest, res, () => {
-    productController.updateStock(req as AuthenticatedRequest, res)
+  const authReq = getAuthenticatedRequest(req)
+  if (!authReq) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+  return requireAdmin(authReq, res, () => {
+    return productController.updateStock(authReq, res)
   })
 })
 

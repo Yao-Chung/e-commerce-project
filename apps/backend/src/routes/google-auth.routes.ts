@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express'
 import passport from 'passport'
 import { authController } from '../controllers/auth.controller'
-import { AuthenticatedRequest } from '../types/auth.types'
+import { getAuthenticatedRequest } from '../middleware/auth.middleware'
 
 const router: Router = Router()
 
@@ -40,7 +40,13 @@ router.get(
     failureRedirect:
       process.env.FRONTEND_URL + '/auth/login?error=google_auth_failed',
   }),
-  (req, res) => authController.googleCallback(req as AuthenticatedRequest, res)
+  (req: Request, res: Response) => {
+    const authReq = getAuthenticatedRequest(req)
+    if (!authReq) {
+      return res.status(401).json({ error: 'Google authentication failed' })
+    }
+    return authController.googleCallback(authReq, res)
+  }
 )
 
 export default router
