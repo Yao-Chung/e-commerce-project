@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import passport from 'passport'
 import { AuthenticatedRequest } from '../types/auth.types'
+import { OptionalAuthRequest } from '../types/cart.types'
 import { User } from '@prisma/client'
 
 // Type guard to check if request has user
@@ -50,6 +51,17 @@ export function getAuthenticatedRequest(
     return req
   }
   return null
+}
+
+// Helper function to safely get optional auth request
+export function getOptionalAuthRequest(req: Request): OptionalAuthRequest {
+  // Create a properly typed object without type assertion
+  // Using Object.assign to ensure all properties are preserved
+  const result: OptionalAuthRequest = Object.assign(
+    Object.create(Object.getPrototypeOf(req)),
+    req
+  )
+  return result
 }
 
 // Admin role middleware

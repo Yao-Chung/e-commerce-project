@@ -1961,6 +1961,257 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  # Cart Endpoints
+  /api/cart:
+    get:
+      tags:
+        - Cart
+      summary: Get current cart
+      description: Retrieve the current user's cart (authenticated) or guest cart (session-based)
+      security: []
+      parameters:
+        - in: header
+          name: x-session-id
+          schema:
+            type: string
+          description: Session ID for guest cart (required for guest users)
+      responses:
+        '200':
+          description: Cart retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Cart retrieved successfully'
+                  data:
+                    $ref: '#/components/schemas/CartResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      tags:
+        - Cart
+      summary: Clear entire cart
+      description: Remove all items from the cart
+      security: []
+      parameters:
+        - in: header
+          name: x-session-id
+          schema:
+            type: string
+          description: Session ID for guest cart (required for guest users)
+      responses:
+        '200':
+          description: Cart cleared successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Cart cleared successfully'
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: 'All items have been removed from your cart'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/cart/items:
+    post:
+      tags:
+        - Cart
+      summary: Add item to cart
+      description: Add a product to the cart with specified quantity
+      security: []
+      parameters:
+        - in: header
+          name: x-session-id
+          schema:
+            type: string
+          description: Session ID for guest cart (required for guest users)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddToCartRequest'
+      responses:
+        '201':
+          description: Item added to cart successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Item added to cart successfully'
+                  data:
+                    $ref: '#/components/schemas/CartResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/cart/items/{productId}:
+    put:
+      tags:
+        - Cart
+      summary: Update cart item quantity
+      description: Update the quantity of a specific item in the cart. Set quantity to 0 to remove the item.
+      security: []
+      parameters:
+        - in: path
+          name: productId
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID of the product to update
+        - in: header
+          name: x-session-id
+          schema:
+            type: string
+          description: Session ID for guest cart (required for guest users)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCartItemRequest'
+      responses:
+        '200':
+          description: Cart item updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Cart item updated successfully'
+                  data:
+                    $ref: '#/components/schemas/CartResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      tags:
+        - Cart
+      summary: Remove item from cart
+      description: Remove a specific item from the cart
+      security: []
+      parameters:
+        - in: path
+          name: productId
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID of the product to remove
+        - in: header
+          name: x-session-id
+          schema:
+            type: string
+          description: Session ID for guest cart (required for guest users)
+      responses:
+        '200':
+          description: Item removed from cart successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Item removed from cart successfully'
+                  data:
+                    $ref: '#/components/schemas/CartResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/cart/merge:
+    post:
+      tags:
+        - Cart
+      summary: Merge guest cart with authenticated user cart
+      description: Merge a guest cart with the authenticated user's cart after login
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MergeCartRequest'
+      responses:
+        '200':
+          description: Guest cart merged successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Guest cart merged successfully'
+                  data:
+                    $ref: '#/components/schemas/CartResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/cart/validate:
+    get:
+      tags:
+        - Cart
+      summary: Validate cart contents
+      description: Validate cart items for stock availability and product existence
+      security: []
+      parameters:
+        - in: header
+          name: x-session-id
+          schema:
+            type: string
+          description: Session ID for guest cart (required for guest users)
+      responses:
+        '200':
+          description: Cart validation completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Cart validation completed'
+                  data:
+                    $ref: '#/components/schemas/CartValidationResult'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
 components:
   securitySchemes:
     BearerAuth:
@@ -2630,6 +2881,133 @@ components:
           type: integer
           example: 245760
 
+    # Cart Schemas
+    CartItemWithProduct:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: '123e4567-e89b-12d3-a456-426614174000'
+        userId:
+          type: string
+          format: uuid
+          example: '123e4567-e89b-12d3-a456-426614174000'
+        productId:
+          type: string
+          format: uuid
+          example: '123e4567-e89b-12d3-a456-426614174000'
+        quantity:
+          type: integer
+          minimum: 1
+          example: 2
+        createdAt:
+          type: string
+          format: date-time
+          example: '2023-01-01T12:00:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2023-01-01T12:00:00Z'
+        product:
+          $ref: '#/components/schemas/Product'
+
+    CartSummary:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItemWithProduct'
+        totalItems:
+          type: integer
+          minimum: 0
+          example: 3
+        totalAmount:
+          type: number
+          format: float
+          minimum: 0
+          example: 29.99
+        subtotal:
+          type: number
+          format: float
+          minimum: 0
+          example: 29.99
+
+    CartResponse:
+      type: object
+      properties:
+        cart:
+          $ref: '#/components/schemas/CartSummary'
+        isGuest:
+          type: boolean
+          example: false
+
+    AddToCartRequest:
+      type: object
+      required:
+        - productId
+        - quantity
+      properties:
+        productId:
+          type: string
+          format: uuid
+          example: '123e4567-e89b-12d3-a456-426614174000'
+        quantity:
+          type: integer
+          minimum: 1
+          example: 2
+
+    UpdateCartItemRequest:
+      type: object
+      required:
+        - quantity
+      properties:
+        quantity:
+          type: integer
+          minimum: 0
+          example: 3
+
+    MergeCartRequest:
+      type: object
+      required:
+        - guestSessionId
+      properties:
+        guestSessionId:
+          type: string
+          minLength: 1
+          example: 'guest-session-123'
+
+    CartValidationResult:
+      type: object
+      properties:
+        isValid:
+          type: boolean
+          example: true
+        errors:
+          type: array
+          items:
+            type: string
+          example: []
+        unavailableItems:
+          type: array
+          items:
+            type: string
+          example: []
+        stockIssues:
+          type: array
+          items:
+            type: object
+            properties:
+              productId:
+                type: string
+                format: uuid
+              requestedQuantity:
+                type: integer
+              availableStock:
+                type: integer
+          example: []
+
   responses:
     Unauthorized:
       description: Authentication required
@@ -2665,6 +3043,20 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ValidationError'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
 
 tags:
   - name: Health

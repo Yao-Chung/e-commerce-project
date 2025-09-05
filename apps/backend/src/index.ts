@@ -11,6 +11,7 @@ import userRoutes from './routes/user.routes'
 import addressRoutes from './routes/address.routes'
 import wishlistRoutes from './routes/wishlist.routes'
 import preferencesRoutes from './routes/preferences.routes'
+import cartRoutes from './routes/cart.routes'
 
 // Load environment variables
 dotenv.config()
@@ -50,6 +51,7 @@ app.use('/api/users', userRoutes)
 app.use('/api/addresses', addressRoutes)
 app.use('/api/wishlist', wishlistRoutes)
 app.use('/api/preferences', preferencesRoutes)
+app.use('/api/cart', cartRoutes)
 
 // API routes
 app.get('/api', (_, res): void => {
